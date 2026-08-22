@@ -11,7 +11,6 @@ import NextTripCountdown from './NextTripCountdown.jsx'
 import RecentTrips from './RecentTrips.jsx'
 import BudgetHighlight from './BudgetHighlight.jsx'
 import RecommendedDestinations from './RecommendedDestinations.jsx'
-import CommandPalette from '../../components/ui/CommandPalette.jsx'
 
 export default function DashboardPage() {
   const dispatch = useDispatch()
@@ -23,15 +22,11 @@ export default function DashboardPage() {
   const [popularCities, setPopularCities] = useState([])
   const [citiesLoading, setCitiesLoading] = useState(true)
   const [citiesError, setCitiesError] = useState(null)
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
 
-  // Listen for custom open command palette event
-  useEffect(() => {
-    const handleOpen = () => setIsCommandPaletteOpen(true)
-    window.addEventListener('open-command-palette', handleOpen)
-    return () => window.removeEventListener('open-command-palette', handleOpen)
-  }, [])
+  // Open the global command palette (owned by AppLayout)
+  const openCommandPalette = () =>
+    window.dispatchEvent(new CustomEvent('open-command-palette'))
 
   // Fetch user trips
   useEffect(() => {
@@ -69,7 +64,7 @@ export default function DashboardPage() {
       <JourneyMapHeader
         user={user}
         trips={trips}
-        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenCommandPalette={openCommandPalette}
       />
 
       {/* 2. Key Stats Grid with Count-up & Sparklines */}
@@ -100,11 +95,6 @@ export default function DashboardPage() {
         onRetry={loadPopularCities}
       />
 
-      {/* Global Command Palette (⌘K) */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-      />
     </motion.div>
   )
 }
