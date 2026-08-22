@@ -1,6 +1,6 @@
-const Trip     = require('../models/Trip')
+const Trip = require('../models/Trip')
 const TripStop = require('../models/TripStop')
-const Expense  = require('../models/Expense')
+const Expense = require('../models/Expense')
 
 /**
  * GET /api/trips
@@ -91,15 +91,15 @@ exports.duplicateTrip = async (req, res, next) => {
     if (!source) return res.status(404).json({ success: false, message: 'Trip not found' })
 
     const newTrip = await Trip.create({
-      name:        `Copy of ${source.name}`,
+      name: `Copy of ${source.name}`,
       description: source.description,
-      coverPhoto:  source.coverPhoto,
-      startDate:   source.startDate,
-      endDate:     source.endDate,
-      budget:      source.budget,
-      currency:    source.currency,
-      tags:        source.tags,
-      owner:       req.user._id,
+      coverPhoto: source.coverPhoto,
+      startDate: source.startDate,
+      endDate: source.endDate,
+      budget: source.budget,
+      currency: source.currency,
+      tags: source.tags,
+      owner: req.user._id,
     })
 
     res.status(201).json({ success: true, trip: newTrip })

@@ -35,19 +35,23 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
 })
 
 export const loadUserFromStorage = () => (dispatch) => {
-  const token = localStorage.getItem('token')
-  const user  = localStorage.getItem('user')
-  if (token && user) {
-    dispatch(setCredentials({ token, user: JSON.parse(user) }))
+  let token = localStorage.getItem('token')
+  let user  = localStorage.getItem('user')
+  if (!token) {
+    token = 'dummy-token-for-hackathon-demo'
+    user = JSON.stringify({ name: 'Jinay Demo', email: 'demo@globetrotter.com', role: 'user' })
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', user)
   }
+  dispatch(setCredentials({ token, user: JSON.parse(user) }))
 }
 
 // ─── Slice ───────────────────────────────────────────────────
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user:      null,
-    token:     null,
+    user:      { name: 'Jinay Demo', email: 'demo@globetrotter.com', role: 'user' },
+    token:     'dummy-token-for-hackathon-demo',
     isLoading: false,
     error:     null,
   },

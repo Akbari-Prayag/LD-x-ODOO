@@ -1,6 +1,6 @@
 const express = require('express')
-const router  = express.Router()
-const ctrl    = require('../controllers/trip.controller')
+const router = express.Router()
+const ctrl = require('../controllers/trip.controller')
 const { protect } = require('../middleware/auth')
 
 router.use(protect)  // All trip routes require auth
@@ -15,6 +15,6 @@ router.route('/:id')
   .delete(ctrl.deleteTrip)
 
 router.post('/:id/duplicate', ctrl.duplicateTrip)
-router.patch('/:id/publish',  ctrl.publishTrip)
+router.patch('/:id/publish', ctrl.publishTrip)
 
 module.exports = router
