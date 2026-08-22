@@ -63,7 +63,7 @@ async function startServer() {
     console.log('✅ MySQL connected successfully')
 
     // 3. Sync tables
-    await sequelize.sync({ alter: true })
+    await sequelize.sync()
     console.log('✅ MySQL tables synchronized')
 
     // 4. Start HTTP server
