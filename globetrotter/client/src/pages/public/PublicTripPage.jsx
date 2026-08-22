@@ -14,6 +14,7 @@ import {
 import toast from 'react-hot-toast'
 import api from '../../services/api.js'
 import { selectIsAuthenticated } from '../../store/slices/authSlice.js'
+import Logo from '../../components/ui/Logo.jsx'
 
 import PublicTripHero from './PublicTripHero.jsx'
 import TripSummary from './TripSummary.jsx'
@@ -141,12 +142,7 @@ export default function PublicTripPage() {
       <header className="sticky top-0 z-40 w-full bg-white/75 dark:bg-surface-900/75 backdrop-blur-xl border-b border-surface-200/60 dark:border-surface-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-ocean-600 to-sage-500 text-white flex items-center justify-center shadow-md shadow-ocean-600/20 group-hover:scale-105 transition-transform">
-              <Globe className="w-5 h-5" />
-            </div>
-            <span className="font-display font-bold text-lg text-surface-900 dark:text-white tracking-tight">
-              GlobeTrotter
-            </span>
+            <Logo size="md" />
           </Link>
 
           {!isAuth ? (

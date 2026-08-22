@@ -32,6 +32,7 @@ const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard.jsx'))
 
 // Public
 const PublicTripPage = lazy(() => import('../pages/public/PublicTripPage.jsx'))
+const LandingPage    = lazy(() => import('../pages/landing/LandingPage.jsx'))
 
 // ─── Guards ──────────────────────────────────────────────────
 function ProtectedRoute({ children }) {
@@ -57,8 +58,8 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<LoadingPage />}>
       <Routes>
-        {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Landing Page (Public root) */}
+        <Route path="/" element={<LandingPage />} />
 
         {/* Auth routes */}
         <Route element={<AuthLayout />}>

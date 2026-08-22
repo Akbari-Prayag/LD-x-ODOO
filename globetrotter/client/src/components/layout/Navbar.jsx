@@ -19,7 +19,7 @@ function getPageTitle(pathname) {
   const key = Object.keys(PAGE_TITLES)
     .sort((a, b) => b.length - a.length)
     .find(k => pathname.startsWith(k))
-  return PAGE_TITLES[key] ?? 'GlobeTrotter'
+  return PAGE_TITLES[key] ?? 'Triply'
 }
 
 export default function Navbar() {

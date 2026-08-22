@@ -1,10 +1,11 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Globe, LayoutDashboard, Map, Search, Activity,
   DollarSign, Calendar, User, ShieldCheck,
   ChevronLeft, ChevronRight, X, LogOut, Settings,
 } from 'lucide-react'
+import Logo from '../ui/Logo.jsx'
 import {
   toggleSidebarCollapse,
   toggleMobileMenu,
@@ -53,18 +54,14 @@ export default function Sidebar() {
       >
         {/* ── Header / Logo ── */}
         <div className="flex items-center justify-between px-4 h-16 border-b border-white/10 flex-shrink-0">
-          {!collapsed && (
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Globe className="w-4.5 h-4.5 text-white" />
-              </div>
-              <span className="text-lg font-display font-bold whitespace-nowrap">GlobeTrotter</span>
-            </div>
-          )}
-          {collapsed && (
-            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center mx-auto">
-              <Globe className="w-4.5 h-4.5 text-white" />
-            </div>
+          {!collapsed ? (
+            <Link to="/dashboard" className="flex items-center gap-2 overflow-hidden group">
+              <Logo variant="white" size="sm" />
+            </Link>
+          ) : (
+            <Link to="/dashboard" className="mx-auto group">
+              <Logo variant="white" size="sm" className="[&>span]:hidden" />
+            </Link>
           )}
 
           {/* Mobile close */}

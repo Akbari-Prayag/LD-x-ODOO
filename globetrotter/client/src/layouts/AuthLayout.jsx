@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { ArrowUpRight, Compass, Globe, Map, Sparkles } from 'lucide-react'
+import Logo from '../components/ui/Logo.jsx'
 
 export default function AuthLayout() {
   return (
@@ -10,10 +11,7 @@ export default function AuthLayout() {
         <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] bg-[size:42px_42px]" />
 
         <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 bg-[#8fc9d8] rounded-2xl flex items-center justify-center rotate-3 shadow-lg shadow-[#16255b]/30">
-            <Globe className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-display font-bold tracking-tight text-white">GlobeTrotter</span>
+          <Logo variant="white" size="md" />
         </div>
 
         <div className="relative z-10 flex-1 flex flex-col justify-center py-5 xl:py-7">
@@ -70,10 +68,7 @@ export default function AuthLayout() {
       <div className="w-full lg:w-1/2 xl:w-[52%] h-full flex items-center justify-center p-4 md:p-6 bg-[#d5e8e8] overflow-y-auto">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-3 mb-4 lg:hidden">
-            <div className="w-9 h-9 bg-[#2d3e86] rounded-xl flex items-center justify-center">
-              <Globe className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-display font-bold text-[#2d3e86]">GlobeTrotter</span>
+            <Logo size="md" />
           </div>
 
           <div className="bg-white rounded-[1.75rem] shadow-[0_24px_60px_rgba(45,62,134,0.16)] border border-white/70 p-5 md:p-7">
