@@ -40,28 +40,28 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
     .filter((c) => c.lat && c.lng)
 
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-surface-900 border border-surface-200/90 dark:border-surface-800 shadow-soft space-y-6">
+    <div className="p-6 sm:p-7 rounded-2xl bg-[#16255b]/30 border border-white/10 shadow-xl backdrop-blur-sm space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-100 dark:border-surface-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
         <div>
-          <h3 className="text-xl font-display font-bold text-surface-900 dark:text-white flex items-center gap-2">
-            <Heart className="w-5 h-5 text-sunset-500 fill-current" />
-            <span>Saved Wishlist Destinations</span>
+          <h3 className="text-xl font-display font-bold text-white flex items-center gap-2">
+            <Heart className="w-5 h-5 text-rose-500 fill-current" />
+            <span>Saved Destinations</span>
           </h3>
-          <p className="text-xs text-surface-500 mt-0.5">
-            Destinations you've bookmarked to include in future itineraries
+          <p className="text-xs text-[#d2e9ec]/70 font-light mt-0.5">
+            Bookmarked locations for future itineraries.
           </p>
         </div>
 
         {/* View Switcher */}
         {savedCities.length > 0 && (
-          <div className="flex items-center bg-surface-100 dark:bg-surface-800 p-1 rounded-xl border border-surface-200 dark:border-surface-700 self-start sm:self-auto">
+          <div className="flex items-center bg-[#0c1222]/80 p-1 rounded-xl border border-white/10 self-start sm:self-auto">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
                 viewMode === 'grid'
-                  ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-white shadow-sm'
-                  : 'text-surface-500 hover:text-surface-800'
+                  ? 'bg-[#3b72de] text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
               }`}
               title="Grid View"
             >
@@ -71,8 +71,8 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
               onClick={() => setViewMode('map')}
               className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
                 viewMode === 'map'
-                  ? 'bg-white dark:bg-surface-700 text-surface-900 dark:text-white shadow-sm'
-                  : 'text-surface-500 hover:text-surface-800'
+                  ? 'bg-[#3b72de] text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
               }`}
               title="Map View"
             >
@@ -84,16 +84,19 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
 
       {/* Empty State */}
       {savedCities.length === 0 ? (
-        <div className="p-8 sm:p-10 rounded-3xl bg-surface-50 dark:bg-surface-800/40 border border-dashed border-surface-200 dark:border-surface-700 text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-sunset-100 dark:bg-sunset-950/60 text-sunset-600 flex items-center justify-center mx-auto shadow-sm">
+        <div className="p-8 sm:p-10 rounded-2xl bg-[#0c1222]/40 border border-dashed border-white/10 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#3b72de]/20 text-[#89c7e2] flex items-center justify-center mx-auto shadow-sm">
             <Heart className="w-6 h-6" />
           </div>
-          <h4 className="text-base font-bold text-surface-800 dark:text-surface-200">No saved destinations yet</h4>
-          <p className="text-xs sm:text-sm text-surface-500 max-w-sm mx-auto">
+          <h4 className="text-base font-bold text-white">No saved destinations yet</h4>
+          <p className="text-xs sm:text-sm text-[#d2e9ec]/70 max-w-sm mx-auto font-light">
             Browse our catalog of world cities and bookmark your dream travel spots for quick itinerary planning.
           </p>
           <div className="pt-2">
-            <Link to="/cities" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-ocean-600 hover:bg-ocean-700 text-white font-semibold text-xs shadow-md">
+            <Link
+              to="/cities"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#3b72de] hover:bg-[#2c5ec6] text-white font-semibold text-xs shadow-md transition-all"
+            >
               <Compass className="w-4 h-4" />
               <span>Explore Cities</span>
             </Link>
@@ -101,7 +104,7 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
         </div>
       ) : viewMode === 'map' ? (
         /* Map View */
-        <div className="relative w-full h-[400px] rounded-2xl overflow-hidden border border-surface-200 dark:border-surface-700 shadow-inner">
+        <div className="relative w-full h-[380px] rounded-2xl overflow-hidden border border-white/10 shadow-inner">
           <MapContainer
             center={[20.5937, 78.9629]}
             zoom={4}
@@ -115,7 +118,7 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
             {cityMarkers.map((city) => (
               <Marker key={city.id} position={[city.lat, city.lng]}>
                 <Popup>
-                  <div className="text-xs font-semibold text-surface-900">
+                  <div className="text-xs font-semibold text-slate-900">
                     {city.name} {city.country ? `• ${city.country}` : ''}
                   </div>
                 </Popup>
@@ -125,40 +128,40 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
         </div>
       ) : (
         /* Grid View */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {savedCities.map((city) => {
             const cityObj = typeof city === 'object' ? city : { id: city, name: 'Saved City' }
             const cityId = cityObj.id || cityObj._id
             return (
               <motion.div
                 key={cityId}
-                whileHover={{ y: -4 }}
-                className="group relative overflow-hidden rounded-3xl border border-surface-200/90 dark:border-surface-800 bg-white dark:bg-surface-900 shadow-soft"
+                whileHover={{ y: -3 }}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#0c1222]/60 shadow-md flex flex-col justify-between"
               >
-                <div className="aspect-[4/3] w-full overflow-hidden bg-surface-100 relative">
+                <div className="aspect-[16/10] w-full overflow-hidden bg-slate-800 relative">
                   <img
                     src={cityObj.image || DEFAULT_CITY_IMG}
                     alt={cityObj.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-80 group-hover:opacity-100"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
                   {/* Remove Button */}
                   <button
                     onClick={() => handleRemoveCity(cityId)}
                     disabled={isRemoving}
-                    className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-danger-500 text-surface-600 hover:text-white backdrop-blur-md transition-colors shadow-sm"
-                    title="Remove from saved"
+                    className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/60 hover:bg-rose-600 text-white backdrop-blur-md transition-colors shadow-sm"
+                    title="Remove from wishlist"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
 
                   {/* City Label */}
-                  <div className="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+                  <div className="absolute bottom-2.5 left-3 right-3 text-white pointer-events-none">
                     <h5 className="font-display font-bold text-base truncate">{cityObj.name}</h5>
                     {cityObj.country && (
-                      <p className="text-xs text-surface-200 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-sunset-300" />
+                      <p className="text-[11px] text-[#d2e9ec]/80 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-[#89c7e2]" />
                         <span>{cityObj.country}</span>
                       </p>
                     )}
@@ -168,9 +171,9 @@ export default function SavedDestinations({ user, onDestinationsUpdated }) {
                 <div className="p-3">
                   <Link
                     to={`/trips/create?destination=${encodeURIComponent(cityObj.name)}`}
-                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-surface-50 dark:bg-surface-800 hover:bg-ocean-50 text-surface-800 dark:text-surface-200 hover:text-ocean-700 font-semibold text-xs transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white/10 hover:bg-[#3b72de] text-white font-semibold text-xs transition-colors"
                   >
-                    <span>Plan Trip Here</span>
+                    <span>Plan Trip</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

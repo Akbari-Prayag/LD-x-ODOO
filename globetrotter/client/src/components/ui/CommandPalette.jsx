@@ -38,6 +38,18 @@ export default function CommandPalette({ isOpen, onClose }) {
     return () => document.removeEventListener('keydown', down)
   }, [isOpen, onClose])
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const handleSelect = (callback) => {
@@ -46,7 +58,10 @@ export default function CommandPalette({ isOpen, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-start justify-center pt-20 px-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[200] flex items-start justify-center pt-20 px-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+    >
       <div
         className="w-full max-w-xl bg-white dark:bg-surface-900 rounded-2xl shadow-2xl border border-surface-200 dark:border-surface-700 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
