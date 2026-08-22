@@ -1,30 +1,37 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Calendar as CalendarIcon,
   CalendarDays,
+  Check,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  Circle,
   CircleDollarSign,
   Clock,
   Clock3,
   Compass,
   DollarSign,
-  Eye,
+  Edit3,
   Filter,
+  GripVertical,
   Layers,
   List,
   MapPin,
   Plus,
+  RotateCcw,
   Search,
   SlidersHorizontal,
   Sparkles,
   Star,
   Tag,
+  Trash2,
   X,
 } from 'lucide-react'
 import {
@@ -34,19 +41,33 @@ import {
   endOfMonth,
   endOfWeek,
   format,
-  isAfter,
-  isBefore,
   isSameDay,
   isSameMonth,
-  isWithinInterval,
   startOfMonth,
   startOfWeek,
   subMonths,
 } from 'date-fns'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchTrip, fetchTrips, selectCurrentTrip, selectTrips } from '../../store/slices/tripsSlice.js'
-import { EXPENSE_COLORS, formatCurrency } from '../../utils/formatUtils.js'
+import { formatCurrency } from '../../utils/formatUtils.js'
 import Button from '../../components/ui/Button.jsx'
+import Input from '../../components/ui/Input.jsx'
 
 const colors = ['blue', 'teal', 'amber', 'purple', 'emerald', 'rose']
 const colorClasses = {
@@ -67,9 +88,123 @@ const colorBadgeDots = {
   rose: 'bg-rose-500',
 }
 
+const statusColors = {
+  planned: 'bg-surface-100 text-surface-700 border-surface-200',
+  booked: 'bg-primary-50 text-primary-700 border-primary-200',
+  completed: 'bg-success-50 text-success-700 border-success-200',
+  cancelled: 'bg-danger-50 text-danger-700 border-danger-200',
+}
+
+const ACTIVITY_CATEGORIES = [
+  'Sightseeing',
+  'Food & Dining',
+  'Adventure',
+  'Culture & History',
+  'Nature & Outdoors',
+  'Shopping',
+  'Entertainment',
+  'Relaxation',
+]
+
 const toDate = value => new Date(`${String(value).slice(0, 10)}T00:00:00`)
 const keyOf = value => format(value, 'yyyy-MM-dd')
-const getId = item => item.id ?? item._id
+const getId = item => String(item.id ?? item._id ?? Math.random())
+
+// Sortable Item Component for DnD
+function SortableActivityItem({ activity, onEdit, onToggleStatus, currency }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: getId(activity) })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  }
+
+  const status = activity.status || 'planned'
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-white border border-surface-200 hover:border-[#4677d9] rounded-xl p-3.5 transition-all shadow-2xs hover:shadow-xs flex items-start gap-2.5 group"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="text-surface-300 group-hover:text-surface-600 cursor-grab active:cursor-grabbing p-1 mt-0.5"
+        title="Drag to reorder"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+
+      <div className="flex-1 min-w-0" onClick={() => onEdit(activity)}>
+        <div className="flex flex-wrap items-center justify-between gap-1.5 cursor-pointer">
+          <span className="font-semibold text-surface-900 text-xs md:text-sm truncate">
+            {activity.customName || activity.activity?.name || 'Activity'}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {activity.category && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-100 text-surface-600 capitalize">
+                {activity.category}
+              </span>
+            )}
+            <span
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize ${
+                statusColors[status] || statusColors.planned
+              }`}
+            >
+              {status}
+            </span>
+          </div>
+        </div>
+
+        <p className="text-xs text-surface-500 mt-1 line-clamp-2 cursor-pointer">
+          {activity.customDescription || activity.activity?.description || activity.notes || 'Click to view full notes.'}
+        </p>
+
+        <div className="flex items-center justify-between text-[11px] text-surface-500 mt-2.5 pt-2 border-t border-surface-100">
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3 text-surface-400" />
+            {activity.startTime ? `${activity.startTime}${activity.endTime ? ` - ${activity.endTime}` : ''}` : 'Flexible timing'}
+          </span>
+          <span className="font-semibold text-surface-900">
+            {activity.cost || activity.customCost
+              ? formatCurrency(activity.cost || activity.customCost, currency)
+              : 'Free / Included'}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1 shrink-0 pt-0.5">
+        <button
+          type="button"
+          onClick={() => onToggleStatus(activity)}
+          className="p-1 rounded-lg text-surface-400 hover:text-success-600 hover:bg-success-50 transition-colors"
+          title="Cycle Status (Planned → Booked → Completed)"
+        >
+          <CheckCircle2 className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onEdit(activity)}
+          className="p-1 rounded-lg text-surface-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+          title="Edit Details"
+        >
+          <Edit3 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function CalendarPage() {
   const { id } = useParams()
@@ -80,9 +215,37 @@ export default function CalendarPage() {
   const [viewMode, setViewMode] = useState('calendar') // 'calendar' | 'timeline'
   const [selectedTripId, setSelectedTripId] = useState(id || 'all')
   const [month, setMonth] = useState(startOfMonth(new Date()))
+
+  // Filters
   const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
+
+  // Local state for modified activities (for instant reordering and editing)
+  const [localActivities, setLocalActivities] = useState([])
+  const [collapsedDays, setCollapsedDays] = useState({})
+
+  // Modals
   const [selectedDay, setSelectedDay] = useState(null)
-  const [selectedActivity, setSelectedActivity] = useState(null)
+  const [editingActivity, setEditingActivity] = useState(null)
+  const [isAddActivityOpen, setIsAddActivityOpen] = useState(false)
+  const [targetDayForAdd, setTargetDayForAdd] = useState('')
+  const [newActivityForm, setNewActivityForm] = useState({
+    customName: '',
+    category: 'Sightseeing',
+    startTime: '10:00 AM',
+    endTime: '12:00 PM',
+    customCost: '',
+    scheduledDate: '',
+    status: 'planned',
+    notes: '',
+  })
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   useEffect(() => {
     dispatch(fetchTrips())
@@ -101,6 +264,29 @@ export default function CalendarPage() {
       }
     }
   }, [selectedTripId, trips, currentTrip])
+
+  // Sync local activities from trips
+  useEffect(() => {
+    const allActs = []
+    const sourceTrips = selectedTripId === 'all' ? trips : trips.filter(t => String(getId(t)) === String(selectedTripId))
+
+    sourceTrips.forEach(t => {
+      (t.stops || []).forEach(stop => {
+        (stop.activities || []).forEach(act => {
+          allActs.push({
+            ...act,
+            tripId: getId(t),
+            tripName: t.name,
+            currency: t.currency || 'INR',
+            stopCity: stop.city?.name || stop.customCityName || 'Destination',
+            stopArrival: String(stop.arrivalDate || '').slice(0, 10),
+            stopDeparture: String(stop.departureDate || '').slice(0, 10),
+          })
+        })
+      })
+    })
+    setLocalActivities(allActs)
+  }, [trips, selectedTripId])
 
   // Calendar Days Calculation
   const days = useMemo(() => {
@@ -135,13 +321,39 @@ export default function CalendarPage() {
       .sort((a, b) => a.start - b.start)
   }, [trips, search, selectedTripId])
 
-  // Focused Trip
+  // Active focused trip
   const activeFocusedTrip = useMemo(() => {
     if (selectedTripId === 'all') return currentTrip || trips[0] || null
     return trips.find(t => String(getId(t)) === String(selectedTripId)) || currentTrip || null
   }, [selectedTripId, trips, currentTrip])
 
-  // Events on a given calendar day
+  // Filtered Activities
+  const filteredActivities = useMemo(() => {
+    return localActivities.filter(act => {
+      const q = search.toLowerCase()
+      const title = (act.customName || act.activity?.name || '').toLowerCase()
+      const desc = (act.customDescription || act.activity?.description || act.notes || '').toLowerCase()
+      const city = (act.stopCity || '').toLowerCase()
+
+      const matchesSearch = !q || title.includes(q) || desc.includes(q) || city.includes(q)
+      const matchesCat = categoryFilter === 'all' || (act.category && act.category.toLowerCase() === categoryFilter.toLowerCase())
+      const matchesStatus = statusFilter === 'all' || (act.status || 'planned').toLowerCase() === statusFilter.toLowerCase()
+
+      return matchesSearch && matchesCat && matchesStatus
+    })
+  }, [localActivities, search, categoryFilter, statusFilter])
+
+  // Filter count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0
+    if (search.trim()) count++
+    if (categoryFilter !== 'all') count++
+    if (statusFilter !== 'all') count++
+    if (selectedTripId !== 'all') count++
+    return count
+  }, [search, categoryFilter, statusFilter, selectedTripId])
+
+  // Get Events for a day
   const getEventsForDay = (day) => {
     const dayKey = keyOf(day)
     return events.filter(event => {
@@ -151,36 +363,16 @@ export default function CalendarPage() {
     })
   }
 
-  // Activities for a focused trip or all trips on a day
+  // Get Activities for a day
   const getActivitiesForDay = (day) => {
     const dayKey = keyOf(day)
-    const activeTripsList = selectedTripId === 'all'
-      ? trips
-      : trips.filter(t => String(getId(t)) === String(selectedTripId))
-
-    const list = []
-    activeTripsList.forEach(t => {
-      (t.stops || []).forEach(stop => {
-        (stop.activities || []).forEach(act => {
-          const actDate = act.scheduledDate ? String(act.scheduledDate).slice(0, 10) : ''
-          const stopStart = String(stop.arrivalDate || '').slice(0, 10)
-          const stopEnd = String(stop.departureDate || '').slice(0, 10)
-
-          if (actDate === dayKey || (!actDate && dayKey >= stopStart && dayKey <= stopEnd)) {
-            list.push({
-              ...act,
-              tripName: t.name,
-              currency: t.currency,
-              stopCity: stop.city?.name || stop.customCityName || 'City Stop',
-            })
-          }
-        })
-      })
+    return filteredActivities.filter(act => {
+      const actDate = act.scheduledDate ? String(act.scheduledDate).slice(0, 10) : ''
+      return actDate === dayKey || (!actDate && dayKey >= act.stopArrival && dayKey <= act.stopDeparture)
     })
-    return list
   }
 
-  // Timeline Days Sequence for the active focused trip
+  // Timeline Days Sequence
   const timelineDays = useMemo(() => {
     if (!activeFocusedTrip?.startDate || !activeFocusedTrip?.endDate) return []
     const start = toDate(activeFocusedTrip.startDate)
@@ -194,23 +386,24 @@ export default function CalendarPage() {
         const sDep = String(stop.departureDate || '').slice(0, 10)
         return dateKey >= sArr && dateKey <= sDep
       })
-      const activities = stops.flatMap(stop =>
-        (stop.activities || []).map(act => ({
-          ...act,
-          stopCity: stop.city?.name || stop.customCityName || 'City Stop',
-          currency: activeFocusedTrip.currency,
-        }))
-      )
+
+      const actsForDate = filteredActivities.filter(act => {
+        const actDate = act.scheduledDate ? String(act.scheduledDate).slice(0, 10) : ''
+        return (
+          String(act.tripId) === String(getId(activeFocusedTrip)) &&
+          (actDate === dateKey || (!actDate && stops.some(s => s.city?.name === act.stopCity || s.customCityName === act.stopCity)))
+        )
+      })
 
       result.push({
         date: new Date(cur),
         dateKey,
         stops,
-        activities,
+        activities: actsForDate,
       })
     }
     return result
-  }, [activeFocusedTrip])
+  }, [activeFocusedTrip, filteredActivities])
 
   // Overview metrics
   const tripDaysCount = activeFocusedTrip?.startDate && activeFocusedTrip?.endDate
@@ -227,6 +420,108 @@ export default function CalendarPage() {
       .sort((a, b) => toDate(a.startDate) - toDate(b.startDate))[0] || null
   }, [trips])
 
+  // DnD Reorder Handler
+  const handleDragEnd = (event, dateKey) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    setLocalActivities(prev => {
+      const oldIndex = prev.findIndex(item => getId(item) === active.id)
+      const newIndex = prev.findIndex(item => getId(item) === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      return arrayMove(prev, oldIndex, newIndex)
+    })
+  }
+
+  // Quick Status Toggle Handler
+  const handleToggleStatus = (act) => {
+    const statuses = ['planned', 'booked', 'completed']
+    const nextStatus = statuses[(statuses.indexOf(act.status || 'planned') + 1) % statuses.length]
+    setLocalActivities(prev =>
+      prev.map(item => (getId(item) === getId(act) ? { ...item, status: nextStatus } : item))
+    )
+  }
+
+  // Save Edited Activity
+  const handleSaveActivity = (e) => {
+    e.preventDefault()
+    if (!editingActivity) return
+
+    setLocalActivities(prev =>
+      prev.map(item =>
+        getId(item) === getId(editingActivity)
+          ? {
+              ...item,
+              customName: editingActivity.customName,
+              category: editingActivity.category,
+              startTime: editingActivity.startTime,
+              endTime: editingActivity.endTime,
+              customCost: editingActivity.customCost,
+              status: editingActivity.status,
+              notes: editingActivity.notes,
+              scheduledDate: editingActivity.scheduledDate,
+            }
+          : item
+      )
+    )
+    setEditingActivity(null)
+  }
+
+  // Delete Activity
+  const handleDeleteActivity = (act) => {
+    if (!window.confirm(`Remove "${act.customName || act.activity?.name || 'activity'}"?`)) return
+    setLocalActivities(prev => prev.filter(item => getId(item) !== getId(act)))
+    if (editingActivity && getId(editingActivity) === getId(act)) {
+      setEditingActivity(null)
+    }
+  }
+
+  // Add New Custom Activity
+  const handleCreateActivity = (e) => {
+    e.preventDefault()
+    if (!newActivityForm.customName.trim()) return
+
+    const newAct = {
+      id: `custom-${Date.now()}`,
+      tripId: selectedTripId === 'all' && activeFocusedTrip ? getId(activeFocusedTrip) : selectedTripId,
+      tripName: activeFocusedTrip?.name || 'Trip',
+      currency: activeFocusedTrip?.currency || 'INR',
+      stopCity: activeFocusedTrip?.stops?.[0]?.city?.name || 'Local City',
+      customName: newActivityForm.customName,
+      category: newActivityForm.category,
+      startTime: newActivityForm.startTime,
+      endTime: newActivityForm.endTime,
+      customCost: Number(newActivityForm.customCost) || 0,
+      scheduledDate: newActivityForm.scheduledDate || targetDayForAdd,
+      status: newActivityForm.status,
+      notes: newActivityForm.notes,
+    }
+
+    setLocalActivities(prev => [newAct, ...prev])
+    setIsAddActivityOpen(false)
+    setNewActivityForm({
+      customName: '',
+      category: 'Sightseeing',
+      startTime: '10:00 AM',
+      endTime: '12:00 PM',
+      customCost: '',
+      scheduledDate: '',
+      status: 'planned',
+      notes: '',
+    })
+  }
+
+  const clearAllFilters = () => {
+    setSearch('')
+    setCategoryFilter('all')
+    setStatusFilter('all')
+    setSelectedTripId('all')
+  }
+
+  const toggleCollapseDay = (dateKey) => {
+    setCollapsedDays(prev => ({ ...prev, [dateKey]: !prev[dateKey] }))
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Header */}
@@ -239,17 +534,17 @@ export default function CalendarPage() {
             Trip Calendar & Timeline
           </h1>
           <p className="text-surface-500 text-sm mt-0.5">
-            Visualize your full itinerary through a monthly interactive calendar or vertical day-by-day flow.
+            Visualize your itinerary via interactive monthly grid or chronological vertical timeline.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* View Toggle */}
+          {/* View Toggle Button */}
           <div className="inline-flex rounded-xl border border-surface-200 bg-surface-100 p-1 shadow-2xs">
             <button
               type="button"
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'calendar'
                   ? 'bg-white text-[#2d3e86] shadow-sm'
                   : 'text-surface-600 hover:text-surface-900'
@@ -260,7 +555,7 @@ export default function CalendarPage() {
             <button
               type="button"
               onClick={() => setViewMode('timeline')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'timeline'
                   ? 'bg-white text-[#2d3e86] shadow-sm'
                   : 'text-surface-600 hover:text-surface-900'
@@ -270,16 +565,21 @@ export default function CalendarPage() {
             </button>
           </div>
 
-          <Link
-            to="/trips/create"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-[#4677d9] hover:bg-[#2d3e86] px-4 py-2 text-xs font-semibold text-white shadow-sm"
+          <Button
+            type="button"
+            className="!bg-[#4677d9] hover:!bg-[#2d3e86] !rounded-xl text-xs font-semibold shadow-sm"
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+            onClick={() => {
+              setTargetDayForAdd(activeFocusedTrip?.startDate ? String(activeFocusedTrip.startDate).slice(0, 10) : '')
+              setIsAddActivityOpen(true)
+            }}
           >
-            <Plus className="w-3.5 h-3.5" /> Plan Trip
-          </Link>
+            Add Activity
+          </Button>
         </div>
       </div>
 
-      {/* 4 Stats Cards */}
+      {/* 4 Stats Summary Cards */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           [CalendarDays, 'Total Trips', trips.length, 'In your profile'],
@@ -301,52 +601,92 @@ export default function CalendarPage() {
       </section>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
-          <input
-            className="input pl-10 text-sm"
-            placeholder="Search trips, activities, or places..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
-            <select
-              className="input pl-10 md:w-56 text-sm"
-              value={selectedTripId}
-              onChange={e => setSelectedTripId(e.target.value)}
-            >
-              <option value="all">All Trips Overview</option>
-              {trips.map(item => (
-                <option key={getId(item)} value={getId(item)}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+      <div className="card p-4 space-y-3">
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
+            <input
+              className="input pl-10 text-xs md:text-sm"
+              placeholder="Search activities by title, city, or note..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="!rounded-xl"
-            onClick={() => setMonth(startOfMonth(new Date()))}
-          >
-            Today
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-surface-400" />
+              <select
+                className="input pl-9 md:w-48 text-xs font-medium"
+                value={selectedTripId}
+                onChange={e => setSelectedTripId(e.target.value)}
+              >
+                <option value="all">All Trips Overview</option>
+                {trips.map(item => (
+                  <option key={getId(item)} value={getId(item)}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <select
+              className="input md:w-36 text-xs font-medium"
+              value={categoryFilter}
+              onChange={e => setCategoryFilter(e.target.value)}
+            >
+              <option value="all">All Categories</option>
+              {ACTIVITY_CATEGORIES.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            <select
+              className="input md:w-32 text-xs font-medium"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Statuses</option>
+              <option value="planned">Planned</option>
+              <option value="booked">Booked</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="!rounded-xl text-xs"
+              onClick={() => setMonth(startOfMonth(new Date()))}
+            >
+              Today
+            </Button>
+          </div>
         </div>
+
+        {activeFiltersCount > 0 && (
+          <div className="flex items-center justify-between text-xs text-surface-500 pt-1 border-t border-surface-100">
+            <span>
+              Active filters: <strong>{activeFiltersCount}</strong> · Showing <strong>{filteredActivities.length}</strong> activities
+            </span>
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="flex items-center gap-1 text-[#4677d9] font-semibold hover:underline"
+            >
+              <RotateCcw className="w-3 h-3" /> Reset filters
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* MAIN VIEW: CALENDAR OR TIMELINE */}
+      {/* MAIN CONTENT: CALENDAR OR TIMELINE VIEW */}
       {viewMode === 'calendar' ? (
         <div className="grid gap-5 xl:grid-cols-[250px_1fr]">
           {/* Left Mini Sidebar */}
           <aside className="space-y-4">
-            {/* Mini Calendar Month Picker */}
+            {/* Mini Month Picker */}
             <section className="card p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-semibold text-surface-900 text-sm">{format(month, 'MMMM yyyy')}</h2>
@@ -407,17 +747,17 @@ export default function CalendarPage() {
               </div>
             </section>
 
-            {/* Trips List in Sidebar */}
+            {/* Active Trips Quick List */}
             <section className="card p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-surface-900 text-sm">Active Trips</h3>
+                <h3 className="font-semibold text-surface-900 text-sm">Trips</h3>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-100 text-surface-600">
                   {events.length}
                 </span>
               </div>
 
               {events.length === 0 ? (
-                <p className="text-xs text-surface-400 py-3 text-center">No trips found</p>
+                <p className="text-xs text-surface-400 py-3 text-center">No matching trips</p>
               ) : (
                 <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                   {events.map(event => (
@@ -448,9 +788,8 @@ export default function CalendarPage() {
             </section>
           </aside>
 
-          {/* Large Monthly Calendar Grid */}
+          {/* Large Monthly Grid */}
           <section className="card overflow-hidden min-w-0 flex flex-col">
-            {/* Month Header Nav */}
             <div className="p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 border-b border-surface-100 bg-surface-50/40">
               <div className="flex items-center gap-2">
                 <button
@@ -475,23 +814,18 @@ export default function CalendarPage() {
               </div>
 
               <div className="text-xs text-surface-500">
-                Click any date cell to view scheduled stops and activities.
+                Click any date cell to view scheduled stops, activities, and expenses.
               </div>
             </div>
 
-            {/* Days of Week Headers */}
             <div className="grid grid-cols-7 border-b border-surface-100 bg-surface-50/80">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                <div
-                  key={d}
-                  className="px-2 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-surface-500"
-                >
+                <div key={d} className="px-2 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-surface-500">
                   {d}
                 </div>
               ))}
             </div>
 
-            {/* Days Grid */}
             <div className="grid grid-cols-7 flex-1">
               {days.map(day => {
                 const dayEvents = getEventsForDay(day)
@@ -528,7 +862,6 @@ export default function CalendarPage() {
                       )}
                     </div>
 
-                    {/* Event bars */}
                     <div className="space-y-1 mt-1.5">
                       {dayEvents.slice(0, 2).map(ev => (
                         <div
@@ -536,7 +869,7 @@ export default function CalendarPage() {
                           className={`truncate rounded-md border px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
                             colorClasses[ev.color] || colorClasses.blue
                           }`}
-                          title={`${ev.name} (${format(ev.start, 'MMM d')} - ${format(ev.end, 'MMM d')})`}
+                          title={`${ev.name}`}
                         >
                           <MapPin className="inline w-2.5 h-2.5 mr-1" />
                           {ev.name}
@@ -556,7 +889,7 @@ export default function CalendarPage() {
           </section>
         </div>
       ) : (
-        /* TIMELINE VIEW (Vertical Day-by-Day Journey) */
+        /* TIMELINE VIEW (Vertical Day-by-Day Flow with Drag and Drop Reordering) */
         <section className="card p-5 md:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-surface-100">
             <div>
@@ -564,7 +897,7 @@ export default function CalendarPage() {
                 Itinerary Timeline – {activeFocusedTrip?.name || 'Trip Route'}
               </h2>
               <p className="text-xs text-surface-500 mt-1">
-                Day-by-day chronological travel flow from start to finish.
+                Day-by-day journey flow. Drag handle to reorder activities.
               </p>
             </div>
 
@@ -582,76 +915,99 @@ export default function CalendarPage() {
             </div>
           ) : (
             <div className="relative mt-8 pl-4 md:pl-8 before:absolute before:left-3.5 md:before:left-7.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-primary-200">
-              {timelineDays.map((dayItem, index) => (
-                <div key={dayItem.dateKey} className="relative pb-8 last:pb-2">
-                  {/* Timeline Dot */}
-                  <div className="absolute -left-4 md:-left-8 top-1 w-4 h-4 rounded-full bg-[#4677d9] ring-4 ring-white shadow-xs" />
+              {timelineDays.map((dayItem, index) => {
+                const isCollapsed = collapsedDays[dayItem.dateKey]
+                const dayActIds = dayItem.activities.map(a => getId(a))
 
-                  {/* Day Header Box */}
-                  <div className="bg-surface-50 border border-surface-200 rounded-2xl p-4 md:p-5 shadow-2xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="rounded-xl bg-[#2d3e86] px-3 py-1 text-xs font-bold text-white shadow-2xs">
-                          Day {index + 1}
-                        </span>
-                        <span className="font-display font-bold text-surface-900 text-sm md:text-base">
-                          {format(dayItem.date, 'EEEE, MMMM d, yyyy')}
-                        </span>
+                return (
+                  <div key={dayItem.dateKey} className="relative pb-8 last:pb-2">
+                    <div className="absolute -left-4 md:-left-8 top-1 w-4 h-4 rounded-full bg-[#4677d9] ring-4 ring-white shadow-xs" />
+
+                    <div className="bg-surface-50 border border-surface-200 rounded-2xl p-4 md:p-5 shadow-2xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="rounded-xl bg-[#2d3e86] px-3 py-1 text-xs font-bold text-white shadow-2xs">
+                            Day {index + 1}
+                          </span>
+                          <span className="font-display font-bold text-surface-900 text-sm md:text-base">
+                            {format(dayItem.date, 'EEEE, MMMM d, yyyy')}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {dayItem.stops[0] && (
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4677d9] bg-white border border-primary-100 rounded-lg px-2.5 py-1 shadow-2xs">
+                              <MapPin className="w-3.5 h-3.5 text-[#4677d9]" />
+                              <span>{dayItem.stops[0].city?.name || dayItem.stops[0].customCityName || 'City Stop'}</span>
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTargetDayForAdd(dayItem.dateKey)
+                              setIsAddActivityOpen(true)
+                            }}
+                            className="text-xs font-semibold text-[#4677d9] hover:text-[#2d3e86] p-1 flex items-center gap-1"
+                            title="Add activity to this day"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleCollapseDay(dayItem.dateKey)}
+                            className="text-surface-400 hover:text-surface-700 p-1"
+                            title={isCollapsed ? 'Expand Day' : 'Collapse Day'}
+                          >
+                            {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                          </button>
+                        </div>
                       </div>
 
-                      {dayItem.stops[0] && (
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4677d9] bg-white border border-primary-100 rounded-lg px-2.5 py-1 shadow-2xs">
-                          <MapPin className="w-3.5 h-3.5 text-[#4677d9]" />
-                          <span>{dayItem.stops[0].city?.name || dayItem.stops[0].customCityName || 'City Stop'}</span>
+                      {!isCollapsed && (
+                        <div>
+                          {dayItem.activities.length > 0 ? (
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={(e) => handleDragEnd(e, dayItem.dateKey)}
+                            >
+                              <SortableContext items={dayActIds} strategy={verticalListSortingStrategy}>
+                                <div className="space-y-2.5 mt-3">
+                                  {dayItem.activities.map((act) => (
+                                    <SortableActivityItem
+                                      key={getId(act)}
+                                      activity={act}
+                                      onEdit={(a) => setEditingActivity(a)}
+                                      onToggleStatus={handleToggleStatus}
+                                      currency={activeFocusedTrip?.currency}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
+                          ) : (
+                            <p className="text-xs text-surface-400 py-3 text-center bg-white rounded-xl border border-dashed border-surface-200">
+                              No activities scheduled for this day.{' '}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTargetDayForAdd(dayItem.dateKey)
+                                  setIsAddActivityOpen(true)
+                                }}
+                                className="font-semibold text-[#4677d9] hover:underline"
+                              >
+                                Add an activity +
+                              </button>
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
-
-                    {/* Activities in Day */}
-                    {dayItem.activities.length > 0 ? (
-                      <div className="grid gap-2.5 sm:grid-cols-2 mt-3">
-                        {dayItem.activities.map((act) => (
-                          <div
-                            key={getId(act)}
-                            onClick={() => setSelectedActivity(act)}
-                            className="bg-white border border-surface-200 hover:border-[#4677d9] rounded-xl p-3.5 transition-all shadow-2xs hover:shadow-xs cursor-pointer flex flex-col justify-between"
-                          >
-                            <div>
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-semibold text-surface-900 text-xs md:text-sm truncate">
-                                  {act.activity?.name || act.customName || 'Activity'}
-                                </span>
-                                {act.category && (
-                                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-100 text-surface-600 capitalize shrink-0">
-                                    {act.category}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-surface-500 mt-1 line-clamp-2">
-                                {act.activity?.description || act.notes || 'No extra notes provided.'}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[11px] text-surface-500 mt-3 pt-2 border-t border-surface-100">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-surface-400" />
-                                {act.startTime || 'Flexible'}
-                              </span>
-                              <span className="font-semibold text-surface-900">
-                                {act.cost ? formatCurrency(act.cost, act.currency) : 'Free'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-surface-400 py-2">
-                        No specific activities planned for this day yet. Relax or explore the city freely!
-                      </p>
-                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </section>
@@ -678,7 +1034,7 @@ export default function CalendarPage() {
             </div>
 
             <div className="p-5 max-h-[70vh] overflow-y-auto space-y-4">
-              {/* Trips active on this day */}
+              {/* Trips on this day */}
               <div>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-2">
                   Active Trips ({getEventsForDay(selectedDay).length})
@@ -712,9 +1068,22 @@ export default function CalendarPage() {
 
               {/* Activities for this day */}
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-surface-500 mb-2">
-                  Planned Activities ({getActivitiesForDay(selectedDay).length})
-                </h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-surface-500">
+                    Planned Activities ({getActivitiesForDay(selectedDay).length})
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTargetDayForAdd(keyOf(selectedDay))
+                      setIsAddActivityOpen(true)
+                    }}
+                    className="text-xs font-semibold text-[#4677d9] hover:underline"
+                  >
+                    + Add to day
+                  </button>
+                </div>
+
                 {getActivitiesForDay(selectedDay).length === 0 ? (
                   <p className="text-xs text-surface-400">No activities scheduled for this date.</p>
                 ) : (
@@ -724,20 +1093,20 @@ export default function CalendarPage() {
                         key={getId(act)}
                         onClick={() => {
                           setSelectedDay(null)
-                          setSelectedActivity(act)
+                          setEditingActivity(act)
                         }}
                         className="p-3 rounded-xl border border-surface-200 bg-white hover:border-[#4677d9] transition-all cursor-pointer shadow-2xs flex items-center justify-between"
                       >
                         <div className="min-w-0">
                           <p className="font-semibold text-surface-900 text-xs truncate">
-                            {act.activity?.name || act.customName || 'Activity'}
+                            {act.customName || act.activity?.name || 'Activity'}
                           </p>
                           <p className="text-[10px] text-surface-500 mt-0.5">
                             {act.stopCity} · {act.startTime || 'Time not set'}
                           </p>
                         </div>
                         <span className="font-bold text-xs text-surface-800 shrink-0">
-                          {act.cost ? formatCurrency(act.cost, act.currency) : 'Free'}
+                          {act.cost || act.customCost ? formatCurrency(act.cost || act.customCost, act.currency) : 'Free'}
                         </span>
                       </div>
                     ))}
@@ -761,87 +1130,253 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* Activity Details Modal */}
-      {selectedActivity && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      {/* Quick Edit Activity Modal */}
+      {editingActivity && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-surface-200 w-full max-w-md overflow-hidden animate-scale-up">
             <div className="p-5 border-b border-surface-100 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-[#4677d9] px-2 py-0.5 bg-primary-50 rounded-full">
-                  {selectedActivity.category || 'Activity'}
+                  Edit Activity
                 </span>
                 <h3 className="font-display font-bold text-lg text-surface-900 mt-1">
-                  {selectedActivity.activity?.name || selectedActivity.customName || 'Activity Details'}
+                  {editingActivity.customName || editingActivity.activity?.name || 'Activity Details'}
                 </h3>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedActivity(null)}
+                onClick={() => setEditingActivity(null)}
                 className="text-surface-400 hover:text-surface-700 p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-5 space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-surface-50 p-3 rounded-xl border border-surface-100">
+            <form onSubmit={handleSaveActivity} className="p-5 space-y-4 text-xs">
+              <Input
+                label="Activity Name"
+                value={editingActivity.customName || editingActivity.activity?.name || ''}
+                onChange={e => setEditingActivity({ ...editingActivity, customName: e.target.value })}
+                required
+              />
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-surface-400 block text-[10px]">Location</span>
-                  <span className="font-semibold text-surface-800 text-xs">
-                    {selectedActivity.stopCity || 'City Stop'}
-                  </span>
+                  <label className="input-label">Category</label>
+                  <select
+                    className="input text-xs"
+                    value={editingActivity.category || 'Sightseeing'}
+                    onChange={e => setEditingActivity({ ...editingActivity, category: e.target.value })}
+                  >
+                    {ACTIVITY_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
+
                 <div>
-                  <span className="text-surface-400 block text-[10px]">Time / Duration</span>
-                  <span className="font-semibold text-surface-800 text-xs">
-                    {selectedActivity.startTime || 'Flexible'} · {selectedActivity.activity?.duration || 2}h
-                  </span>
-                </div>
-                <div>
-                  <span className="text-surface-400 block text-[10px]">Estimated Cost</span>
-                  <span className="font-semibold text-surface-800 text-xs">
-                    {selectedActivity.cost
-                      ? formatCurrency(selectedActivity.cost, selectedActivity.currency)
-                      : 'Free'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-surface-400 block text-[10px]">Rating</span>
-                  <span className="font-semibold text-surface-800 text-xs flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    {selectedActivity.activity?.rating || '4.8'} / 5.0
-                  </span>
+                  <label className="input-label">Status</label>
+                  <select
+                    className="input text-xs"
+                    value={editingActivity.status || 'planned'}
+                    onChange={e => setEditingActivity({ ...editingActivity, status: e.target.value })}
+                  >
+                    <option value="planned">Planned</option>
+                    <option value="booked">Booked</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
                 </div>
               </div>
 
-              {selectedActivity.activity?.description && (
-                <div>
-                  <span className="font-semibold text-surface-700 block mb-1">Description</span>
-                  <p className="text-surface-600 leading-relaxed bg-white border border-surface-100 p-3 rounded-xl">
-                    {selectedActivity.activity.description}
-                  </p>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Start Time"
+                  placeholder="e.g. 10:00 AM"
+                  value={editingActivity.startTime || ''}
+                  onChange={e => setEditingActivity({ ...editingActivity, startTime: e.target.value })}
+                />
+                <Input
+                  label="End Time"
+                  placeholder="e.g. 12:30 PM"
+                  value={editingActivity.endTime || ''}
+                  onChange={e => setEditingActivity({ ...editingActivity, endTime: e.target.value })}
+                />
+              </div>
 
-              {selectedActivity.notes && (
-                <div>
-                  <span className="font-semibold text-surface-700 block mb-1">Traveler Notes</span>
-                  <p className="text-surface-600 italic bg-white border border-surface-100 p-3 rounded-xl">
-                    {selectedActivity.notes}
-                  </p>
-                </div>
-              )}
-            </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Scheduled Date"
+                  type="date"
+                  value={editingActivity.scheduledDate ? String(editingActivity.scheduledDate).slice(0, 10) : ''}
+                  onChange={e => setEditingActivity({ ...editingActivity, scheduledDate: e.target.value })}
+                />
+                <Input
+                  label="Estimated Cost"
+                  type="number"
+                  placeholder="0"
+                  value={editingActivity.customCost || editingActivity.cost || ''}
+                  onChange={e => setEditingActivity({ ...editingActivity, customCost: e.target.value })}
+                />
+              </div>
 
-            <div className="p-4 border-t border-surface-100 flex justify-end">
-              <Button
+              <div>
+                <label className="input-label">Notes</label>
+                <textarea
+                  className="input min-h-[70px] resize-none text-xs"
+                  placeholder="Add tips, directions, booking refs..."
+                  value={editingActivity.notes || ''}
+                  onChange={e => setEditingActivity({ ...editingActivity, notes: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-surface-100">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteActivity(editingActivity)}
+                  className="flex items-center gap-1 text-danger-600 hover:text-danger-700 font-semibold"
+                >
+                  <Trash2 className="w-4 h-4" /> Remove
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingActivity(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="!bg-[#4677d9] hover:!bg-[#2d3e86] !rounded-xl"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Activity Modal */}
+      {isAddActivityOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-surface-200 w-full max-w-md overflow-hidden animate-scale-up">
+            <div className="p-5 border-b border-surface-100 flex items-center justify-between">
+              <h3 className="font-display font-bold text-lg text-surface-900">
+                Add Activity to Itinerary
+              </h3>
+              <button
                 type="button"
-                className="!bg-[#4677d9] hover:!bg-[#2d3e86] !rounded-xl"
-                onClick={() => setSelectedActivity(null)}
+                onClick={() => setIsAddActivityOpen(false)}
+                className="text-surface-400 hover:text-surface-700 p-1"
               >
-                Close
-              </Button>
+                <X className="w-5 h-5" />
+              </button>
             </div>
+
+            <form onSubmit={handleCreateActivity} className="p-5 space-y-4 text-xs">
+              <Input
+                label="Activity Name"
+                placeholder="e.g. Visit Eiffel Tower / Sunset boat tour"
+                value={newActivityForm.customName}
+                onChange={e => setNewActivityForm({ ...newActivityForm, customName: e.target.value })}
+                required
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="input-label">Category</label>
+                  <select
+                    className="input text-xs"
+                    value={newActivityForm.category}
+                    onChange={e => setNewActivityForm({ ...newActivityForm, category: e.target.value })}
+                  >
+                    {ACTIVITY_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="input-label">Status</label>
+                  <select
+                    className="input text-xs"
+                    value={newActivityForm.status}
+                    onChange={e => setNewActivityForm({ ...newActivityForm, status: e.target.value })}
+                  >
+                    <option value="planned">Planned</option>
+                    <option value="booked">Booked</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Start Time"
+                  placeholder="e.g. 10:00 AM"
+                  value={newActivityForm.startTime}
+                  onChange={e => setNewActivityForm({ ...newActivityForm, startTime: e.target.value })}
+                />
+                <Input
+                  label="End Time"
+                  placeholder="e.g. 12:30 PM"
+                  value={newActivityForm.endTime}
+                  onChange={e => setNewActivityForm({ ...newActivityForm, endTime: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Date"
+                  type="date"
+                  value={newActivityForm.scheduledDate || targetDayForAdd}
+                  onChange={e => setNewActivityForm({ ...newActivityForm, scheduledDate: e.target.value })}
+                  required
+                />
+                <Input
+                  label="Estimated Cost"
+                  type="number"
+                  placeholder="0"
+                  value={newActivityForm.customCost}
+                  onChange={e => setNewActivityForm({ ...newActivityForm, customCost: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="input-label">Notes (optional)</label>
+                <textarea
+                  className="input min-h-[70px] resize-none text-xs"
+                  placeholder="Tickets, meeting spot, notes..."
+                  value={newActivityForm.notes}
+                  onChange={e => setNewActivityForm({ ...newActivityForm, notes: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-surface-100">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsAddActivityOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="!bg-[#4677d9] hover:!bg-[#2d3e86] !rounded-xl"
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Add to Timeline
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
