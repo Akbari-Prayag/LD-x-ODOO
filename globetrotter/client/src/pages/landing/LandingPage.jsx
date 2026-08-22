@@ -123,17 +123,17 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0c1222] text-[#f0f8fb] font-sans selection:bg-[#3b72de] selection:text-white">
-      {/* ── 1. Clean Navigation Bar with Direct Login ── */}
-      <header className="sticky top-0 z-50 w-full bg-[#0c1222]/90 backdrop-blur-xl border-b border-[#223883]/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <Logo variant="white" size="md" />
+      {/* ── 1. Sleek, Slim Editorial Navigation Bar ── */}
+      <header className="sticky top-0 z-50 w-full bg-[#0c1222]/85 backdrop-blur-lg border-b border-white/10 transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <Logo variant="white" size="sm" />
           </Link>
 
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-[#89c7e2]">
+          {/* Clean Nav Links */}
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold uppercase tracking-wider text-[#89c7e2]">
             <a href="#canvas" className="hover:text-white transition-colors">
-              Itinerary Canvas
+              Canvas
             </a>
             <a href="#destinations" className="hover:text-white transition-colors">
               Destinations
@@ -146,38 +146,26 @@ export default function LandingPage() {
             </a>
           </nav>
 
-          {/* Top Auth Options */}
-          <div className="flex items-center gap-3">
-            {!isAuth ? (
-              <>
-                <Link
-                  to="/login"
-                  className="px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[#d2e9ec] hover:text-white hover:bg-white/5 transition-all"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#3b72de] to-[#223883] hover:from-[#5c9fdf] hover:to-[#3b72de] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#3b72de]/20 hover:shadow-lg transition-all"
-                >
-                  Get Started Free
-                </Link>
-              </>
-            ) : (
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3b72de] hover:bg-[#5c9fdf] text-white text-xs sm:text-sm font-bold shadow-md transition-all"
-              >
-                <span>Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            )}
+          {/* Top Auth Options (Direct Log In + Get Started) */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Link
+              to="/login"
+              className="px-3.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-[#d2e9ec] hover:text-white hover:bg-white/5 transition-all"
+            >
+              Log In
+            </Link>
+            <Link
+              to="/register"
+              className="px-4 sm:px-5 py-2 rounded-lg bg-[#3b72de] hover:bg-[#2c5ec6] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#3b72de]/25 hover:shadow-lg transition-all"
+            >
+              Get Started Free
+            </Link>
           </div>
         </div>
       </header>
 
       {/* ── 2. Full-Bleed Cinematic Hero Section ── */}
-      <section className="relative min-h-[85vh] flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-20 border-b border-[#223883]/30 overflow-hidden">
+      <section className="relative min-h-[85vh] flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-b border-[#223883]/30 overflow-hidden">
         {/* Background Video / Full-Bleed Imagery with Deep Ocean Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <video
@@ -197,16 +185,7 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#223883]/60 border border-[#89c7e2]/30 text-[#89c7e2] text-xs font-semibold backdrop-blur-md"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#89c7e2]" />
-            <span>The Modern Travel Planning Platform</span>
-          </motion.div>
-
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-7">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
