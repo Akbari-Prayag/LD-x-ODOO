@@ -7,28 +7,28 @@ export default function Logo({
   size = 'md', // 'sm' | 'md' | 'lg'
 }) {
   const sizeMap = {
-    sm: { icon: 28, text: 'text-lg', gap: 'gap-2' },
-    md: { icon: 36, text: 'text-xl', gap: 'gap-2.5' },
-    lg: { icon: 44, text: 'text-2xl', gap: 'gap-3' },
+    sm: { icon: 24, text: 'text-base', gap: 'gap-2' },
+    md: { icon: 30, text: 'text-lg', gap: 'gap-2.5' },
+    lg: { icon: 38, text: 'text-xl', gap: 'gap-3' },
   }
 
   const currentSize = sizeMap[size] || sizeMap.md
   const isWhite = variant === 'white'
 
-  const pinColor = isWhite ? '#ffffff' : '#18223c'
-  const planeColor = isWhite ? '#89c7e2' : '#38bdf8'
-  const textColor = isWhite ? 'text-white' : 'text-[#18223c] dark:text-white'
+  const pinColor = isWhite ? '#ffffff' : '#0f172a'
+  const planeColor = isWhite ? '#38bdf8' : '#0284c7'
+  const textColor = isWhite ? 'text-white' : 'text-slate-900 dark:text-white'
 
   return (
-    <div className={cn('inline-flex items-center', currentSize.gap, className)}>
-      {/* Vector Icon */}
+    <div className={cn('inline-flex items-center select-none', currentSize.gap, className)}>
+      {/* Vector Icon without cheap scale animations */}
       <svg
         width={currentSize.icon}
         height={currentSize.icon}
         viewBox="0 0 100 85"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
+        className="flex-shrink-0"
       >
         {/* Location Pin Outline */}
         <path
@@ -40,23 +40,23 @@ export default function Logo({
           fill="none"
         />
 
-        {/* Center Circuit Node Dot */}
-        <circle cx="55" cy="32" r="4.5" fill={pinColor} />
+        {/* Center Dot */}
+        <circle cx="55" cy="32" r="4" fill={pinColor} />
 
         {/* Swooping Flight Path */}
         <path
           d="M 55,32 C 55,50 74,50 80,40 C 84,33 90,22 93,17"
           stroke={planeColor}
-          strokeWidth="3.8"
+          strokeWidth="3.5"
           strokeLinecap="round"
           fill="none"
         />
 
         {/* Connecting Dot */}
-        <circle cx="80" cy="40" r="3" fill={planeColor} />
+        <circle cx="80" cy="40" r="2.5" fill={planeColor} />
 
         {/* Flying Airplane */}
-        <g transform="translate(93, 17) rotate(42) scale(0.48)">
+        <g transform="translate(93, 17) rotate(42) scale(0.44)">
           <path
             d="M 0,-18 L 6,-6 L 22,0 L 6,6 L 4,16 L 0,14 L -4,16 L -6,6 L -22,0 L -6,-6 Z"
             fill={planeColor}
@@ -68,7 +68,7 @@ export default function Logo({
       {variant !== 'icon' && (
         <span
           className={cn(
-            'font-display font-extrabold tracking-wider leading-none',
+            'font-display font-black tracking-widest leading-none uppercase',
             currentSize.text,
             textColor
           )}
