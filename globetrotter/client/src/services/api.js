@@ -24,6 +24,11 @@ api.interceptors.response.use(
   (error) => {
     const isAuthRequest = error.config?.url?.startsWith('/auth/')
     if (error.response?.status === 401 && !isAuthRequest) {
+      const token = localStorage.getItem('token');
+      if (token === 'dummy-token-for-hackathon-demo') {
+        // Prevent redirect to /login for local demo mode
+        return Promise.reject(error);
+      }
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       // Redirect to login (handled via router in components)

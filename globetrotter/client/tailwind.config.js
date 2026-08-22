@@ -10,7 +10,7 @@ export default {
       colors: {
         // Primary brand colors
         primary: {
-          50:  '#eef2ff',
+          50: '#eef2ff',
           100: '#e0e7ff',
           200: '#c7d2fe',
           300: '#a5b4fc',
@@ -50,7 +50,7 @@ export default {
         },
         // Accent / CTA
         accent: {
-          50:  '#fff7ed',
+          50: '#fff7ed',
           100: '#ffedd5',
           200: '#fed7aa',
           300: '#fdba74',
@@ -76,7 +76,7 @@ export default {
         },
         // Success
         success: {
-          50:  '#f0fdf4',
+          50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',
           300: '#86efac',
@@ -89,7 +89,7 @@ export default {
         },
         // Warning
         warning: {
-          50:  '#fffbeb',
+          50: '#fffbeb',
           100: '#fef3c7',
           200: '#fde68a',
           300: '#fcd34d',
@@ -102,7 +102,7 @@ export default {
         },
         // Danger
         danger: {
-          50:  '#fff1f2',
+          50: '#fff1f2',
           100: '#ffe4e6',
           200: '#fecdd3',
           300: '#fda4af',
@@ -115,7 +115,7 @@ export default {
         },
         // Neutrals (sidebar bg, card bg, etc.)
         surface: {
-          50:  '#f8fafc',
+          50: '#f8fafc',
           100: '#f1f5f9',
           200: '#e2e8f0',
           300: '#cbd5e1',
@@ -127,6 +127,14 @@ export default {
           900: '#0f172a',
           950: '#020617',
         },
+        'brand-teal-dark': '#618d83',
+        'brand-teal-medium': '#82beab',
+        'brand-teal-light': '#badacc',
+        'brand-teal-pale': '#eaf5e9',
+        'brand-blue-navy': '#2b3e8c',
+        'brand-blue-medium': '#4178df',
+        'brand-blue-light': '#99cfe3',
+        'brand-blue-pale': '#d3ebe9',
       },
       fontFamily: {
         sans:    ['Inter', 'system-ui', 'sans-serif'],
@@ -151,22 +159,23 @@ export default {
         'card-lg':  '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08)',
         'card-xl':  '0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08)',
         'inner-sm': 'inset 0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        'glow-lg':  '0 0 40px rgb(99 102 241 / 0.2)',
       },
       animation: {
-        'fade-in':    'fadeIn 0.2s ease-out',
-        'slide-up':   'slideUp 0.3s ease-out',
+        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'slide-left': 'slideLeft 0.3s ease-out',
-        'spin-slow':  'spin 3s linear infinite',
+        'spin-slow': 'spin 3s linear infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-sm':  'bounceSm 1s infinite',
+        'bounce-sm': 'bounceSm 1s infinite',
       },
       keyframes: {
-        fadeIn:    { from: { opacity: '0' },                         to: { opacity: '1' } },
-        slideUp:   { from: { opacity: '0', transform: 'translateY(10px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        fadeIn: { from: { opacity: '0' }, to: { opacity: '1' } },
+        slideUp: { from: { opacity: '0', transform: 'translateY(10px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         slideDown: { from: { opacity: '0', transform: 'translateY(-10px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         slideLeft: { from: { opacity: '0', transform: 'translateX(20px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
-        bounceSm:  { '0%, 100%': { transform: 'translateY(-2px)' }, '50%': { transform: 'translateY(0)' } },
+        bounceSm: { '0%, 100%': { transform: 'translateY(-2px)' }, '50%': { transform: 'translateY(0)' } },
       },
       spacing: {
         '18': '4.5rem',
@@ -187,9 +196,9 @@ export default {
         '100': '100',
       },
       backgroundImage: {
-        'gradient-radial':  'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-hero':    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        'gradient-card':    'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 100%)',
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-hero': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        'gradient-card': 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 100%)',
         'gradient-sidebar': 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
       },
       screens: {

@@ -33,6 +33,10 @@ export default function CitiesPage() {
   const [accAddress, setAccAddress] = useState('');
   const [accCost, setAccCost] = useState('0');
   const [isAdding, setIsAdding] = useState(false);
+<<<<<<< HEAD
+=======
+  const [showFilters, setShowFilters] = useState(false);
+>>>>>>> feature/jinay-itinerary-discovery
 
   // Fetch cities and trips on load
   useEffect(() => {
@@ -40,6 +44,19 @@ export default function CitiesPage() {
     dispatch(fetchTrips());
   }, [dispatch, filters]);
 
+<<<<<<< HEAD
+=======
+  // Currency settings for dynamic price range slider
+  const currencySettings = {
+    'India': { symbol: '₹', max: 15000, step: 500, rate: 1 },
+    'France': { symbol: '€', max: 200, step: 5, rate: 0.011 },
+    'Japan': { symbol: '¥', max: 20000, step: 500, rate: 1.8 },
+    'Indonesia': { symbol: 'Rp', max: 2000000, step: 50000, rate: 188 }
+  };
+
+  const activeCurrency = currencySettings[filters.country] || currencySettings['India'];
+
+>>>>>>> feature/jinay-itinerary-discovery
   // Set local state based on API or Mock fallbacks
   useEffect(() => {
     if (apiCities && apiCities.length > 0) {
@@ -62,13 +79,21 @@ export default function CitiesPage() {
         filtered = filtered.filter(c => c.region.toLowerCase() === filters.region.toLowerCase());
       }
       if (filters.maxCost) {
+<<<<<<< HEAD
         filtered = filtered.filter(c => c.costIndex <= Number(filters.maxCost));
+=======
+        filtered = filtered.filter(c => c.avgDailyCost <= Number(filters.maxCost));
+>>>>>>> feature/jinay-itinerary-discovery
       }
       // Sort mock cities
       if (filters.sortBy === 'name') {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
       } else if (filters.sortBy === 'cost') {
+<<<<<<< HEAD
         filtered.sort((a, b) => a.costIndex - b.costIndex);
+=======
+        filtered.sort((a, b) => a.avgDailyCost - b.avgDailyCost);
+>>>>>>> feature/jinay-itinerary-discovery
       } else {
         filtered.sort((a, b) => b.popularity - a.popularity);
       }
@@ -99,6 +124,27 @@ export default function CitiesPage() {
     dispatch(setFilter({ [key]: value }));
   };
 
+<<<<<<< HEAD
+=======
+  const handleCountryChange = (countryName) => {
+    // Determine regions of the new country to check if current region is valid
+    const newAvailableRegions = countryName
+      ? [...new Set(mockCities.filter(c => c.country === countryName).map(c => c.region))]
+      : [...new Set(mockCities.map(c => c.region))];
+    
+    const isRegionValid = newAvailableRegions.includes(filters.region);
+
+    // If changing country, reset maxCost to the default of the new country
+    const newCurrency = currencySettings[countryName] || currencySettings['India'];
+    
+    dispatch(setFilter({
+      country: countryName,
+      region: isRegionValid ? filters.region : '',
+      maxCost: '' // Clear cost filter to show full range
+    }));
+  };
+
+>>>>>>> feature/jinay-itinerary-discovery
   const handleResetFilters = () => {
     dispatch(clearFilters());
   };
@@ -191,6 +237,7 @@ export default function CitiesPage() {
 
   // Get distinct countries from mock data for filters
   const countries = [...new Set(mockCities.map(c => c.country))];
+<<<<<<< HEAD
 
   return (
     <div className="min-h-screen bg-surface-50">
@@ -202,6 +249,22 @@ export default function CitiesPage() {
         {/* Decorative background shapes */}
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-brand-teal-light via-transparent to-brand-blue-light"></div>
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-brand-teal-medium/20 blur-3xl"></div>
+=======
+  const availableRegions = filters.country
+    ? [...new Set(mockCities.filter(c => c.country === filters.country).map(c => c.region))]
+    : [...new Set(mockCities.map(c => c.region))];
+
+  return (
+    <div className="min-h-screen bg-surface-50 font-sans">
+      {/* Premium Hero Banner */}
+      <div 
+        style={{ backgroundImage: 'linear-gradient(135deg, #2b3e8c 0%, #618d83 100%)' }} 
+        className="relative text-white py-16 px-6 sm:px-12 rounded-3xl mb-8 shadow-card-md"
+      >
+        {/* Decorative background shapes */}
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-brand-teal-light via-transparent to-brand-blue-light"></div>
+        <div className="absolute right-0 top-0 w-64 h-64 rounded-full bg-brand-teal-medium/20 blur-3xl"></div>
+>>>>>>> feature/jinay-itinerary-discovery
         
         <div className="relative max-w-4xl mx-auto text-center flex flex-col items-center">
           <Compass className="w-12 h-12 text-brand-teal-light mb-4 animate-spin-slow" />
@@ -230,98 +293,140 @@ export default function CitiesPage() {
                 <X className="w-4 h-4" />
               </button>
             )}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2 rounded-xl transition-all duration-150 flex items-center gap-1.5 ml-2 border ${
+                showFilters 
+                  ? 'bg-brand-teal-pale text-brand-teal-dark border-brand-teal-light/40 font-bold' 
+                  : 'bg-surface-50 text-surface-500 border-surface-200 hover:bg-surface-100 hover:text-surface-800'
+              }`}
+              title="Toggle Filters"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span className="text-xs font-semibold max-sm:hidden">Filters</span>
+            </button>
+
+            {/* Collapsible Dropdown Filter Card */}
+            {showFilters && (
+              <div className="absolute top-full left-0 right-0 sm:left-full sm:right-auto sm:top-0 sm:ml-4 mt-3 sm:mt-0 bg-white border border-surface-200 rounded-3xl shadow-card-xl p-6 z-50 text-left animate-slide-up w-[300px] sm:w-[320px] max-w-[90vw]">
+                {/* Left pointer triangle for desktop */}
+                <div className="hidden sm:block absolute right-full top-4 translate-x-[1px] w-0 h-0 border-y-[10px] border-y-transparent border-r-[10px] border-r-white z-10"></div>
+                <div className="hidden sm:block absolute right-full top-4 w-0 h-0 border-y-[10px] border-y-transparent border-r-[10px] border-r-surface-200"></div>
+                
+                <div className="flex items-center justify-between pb-3 border-b border-surface-100 mb-4">
+                  <span className="font-display font-bold text-sm text-brand-blue-navy flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-brand-teal-dark" /> Filter Options
+                  </span>
+                  {(filters.search || filters.country || filters.region || filters.maxCost) && (
+                    <button
+                      onClick={handleResetFilters}
+                      className="text-xs text-brand-blue-medium hover:text-brand-blue-navy font-semibold transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {/* Country Filter */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
+                      Country
+                    </label>
+                    <select
+                      value={filters.country}
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none"
+                    >
+                      <option value="">All Countries</option>
+                      {countries.map(country => (
+                        <option key={country} value={country}>{country}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Region Filter */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
+                      Region
+                    </label>
+                    <select
+                      value={filters.region}
+                      onChange={(e) => handleFilterChange('region', e.target.value)}
+                      className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none"
+                    >
+                      <option value="">All Regions</option>
+                      {availableRegions.map(region => (
+                        <option key={region} value={region}>{region}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Dynamic Cost Range Filter */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 flex justify-between">
+                      <span>Max Daily Cost</span>
+                      <span className="text-brand-teal-dark font-bold">
+                        {filters.maxCost ? `${activeCurrency.symbol}${Math.round(Number(filters.maxCost) * activeCurrency.rate).toLocaleString()}` : 'Any'}
+                      </span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max={activeCurrency.max}
+                      step={activeCurrency.step}
+                      value={filters.maxCost ? Math.round(Number(filters.maxCost) * activeCurrency.rate) : activeCurrency.max}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val >= activeCurrency.max) {
+                          handleFilterChange('maxCost', '');
+                        } else {
+                          const inrVal = Math.round(val / activeCurrency.rate);
+                          handleFilterChange('maxCost', inrVal);
+                        }
+                      }}
+                      className="w-full accent-brand-teal-dark h-1.5 bg-surface-100 rounded-lg cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-surface-400 mt-1">
+                      <span>Free</span>
+                      <span>{activeCurrency.symbol}{activeCurrency.max.toLocaleString()}+</span>
+                    </div>
+                  </div>
+
+                  {/* Sorting Selection */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
+                      Sort By
+                    </label>
+                    <select
+                      value={filters.sortBy}
+                      onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                      className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none"
+                    >
+                      <option value="popularity">Popularity</option>
+                      <option value="name">City Name</option>
+                      <option value="cost">Average Cost</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Apply Button */}
+                <div className="flex justify-end mt-4 pt-3 border-t border-surface-100">
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="px-4 py-1.5 bg-brand-teal-dark text-white rounded-xl text-xs font-bold hover:bg-brand-teal-medium transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* Left Sidebar Filters */}
-          <aside className="w-full lg:w-64 flex-shrink-0 bg-white rounded-2xl border border-surface-100 p-6 shadow-sm h-fit">
-            <div className="flex items-center justify-between pb-4 border-b border-surface-100 mb-5">
-              <span className="font-display font-bold text-brand-blue-navy flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-brand-teal-dark" /> Filters
-              </span>
-              {(filters.search || filters.country || filters.region || filters.maxCost) && (
-                <button
-                  onClick={handleResetFilters}
-                  className="text-xs text-brand-blue-medium hover:text-brand-blue-navy font-semibold transition-colors"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
-
-            {/* Country Filter */}
-            <div className="mb-5">
-              <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
-                Country
-              </label>
-              <select
-                value={filters.country}
-                onChange={(e) => handleFilterChange('country', e.target.value)}
-                className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none focus:ring-1 focus:ring-brand-teal-light"
-              >
-                <option value="">All Countries</option>
-                {countries.map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Region Filter */}
-            <div className="mb-5">
-              <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
-                Region
-              </label>
-              <select
-                value={filters.region}
-                onChange={(e) => handleFilterChange('region', e.target.value)}
-                className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none focus:ring-1 focus:ring-brand-teal-light"
-              >
-                <option value="">All Regions</option>
-                <option value="Goa">Goa</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Rajasthan">Rajasthan</option>
-                <option value="Europe">Europe</option>
-                <option value="East Asia">East Asia</option>
-                <option value="Southeast Asia">Southeast Asia</option>
-              </select>
-            </div>
-
-            {/* Cost Index Filter */}
-            <div className="mb-6">
-              <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 flex justify-between">
-                <span>Max Cost Level</span>
-                <span className="text-brand-teal-dark font-bold">{filters.maxCost || '5'} / 5</span>
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="5"
-                value={filters.maxCost || '5'}
-                onChange={(e) => handleFilterChange('maxCost', e.target.value)}
-                className="w-full accent-brand-teal-dark h-1.5 bg-surface-100 rounded-lg cursor-pointer"
-              />
-            </div>
-
-            {/* Sorting Selection */}
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
-                Sort By
-              </label>
-              <select
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none focus:ring-1 focus:ring-brand-teal-light"
-              >
-                <option value="popularity">Popularity</option>
-                <option value="name">City Name</option>
-                <option value="cost">Average Cost</option>
-              </select>
-            </div>
-          </aside>
 
           {/* Right Main Grid */}
           <main className="flex-grow">

@@ -5,10 +5,26 @@ import Button from '../ui/Button';
 export default function ActivityCard({ activity, onAddToStop }) {
   const { name, category, estimatedCost, duration = { value: 1, unit: 'hours' }, description, rating = { average: 4.5, count: 50 }, image, tags = [] } = activity;
 
-  // Format currency
+  // Format currency based on country
   const formatCost = (cost) => {
     if (cost === 0) return 'Free';
-    return `₹${cost}`;
+    const country = activity.city?.country;
+    if (country === 'India') {
+      return `₹${cost.toLocaleString('en-IN')}`;
+    }
+    if (country === 'France') {
+      const converted = Math.round(cost * 0.011);
+      return `€${converted.toLocaleString('fr-FR')}`;
+    }
+    if (country === 'Japan') {
+      const converted = Math.round(cost * 1.8);
+      return `¥${converted.toLocaleString('ja-JP')}`;
+    }
+    if (country === 'Indonesia') {
+      const converted = Math.round(cost * 188);
+      return `Rp ${converted.toLocaleString('id-ID')}`;
+    }
+    return `₹${cost.toLocaleString('en-IN')}`;
   };
 
   // Capitalize category

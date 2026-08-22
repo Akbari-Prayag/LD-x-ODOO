@@ -34,6 +34,7 @@ const activitiesSlice = createSlice({
       maxCost:  '',
       duration: '',
       cityId:   '',
+      country:  '',
     },
   },
   reducers: {
@@ -41,7 +42,7 @@ const activitiesSlice = createSlice({
       state.filters = { ...state.filters, ...payload }
     },
     clearFilters(state) {
-      state.filters = { search: '', category: '', minCost: '', maxCost: '', duration: '', cityId: '' }
+      state.filters = { search: '', category: '', minCost: '', maxCost: '', duration: '', cityId: '', country: '' }
     },
   },
   extraReducers: (builder) => {

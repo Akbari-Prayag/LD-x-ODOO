@@ -125,7 +125,7 @@ exports.duplicateTrip = async (req, res, next) => {
     if (!source) return res.status(404).json({ success: false, message: 'Trip not found' })
 
     const newTrip = await Trip.create({
-      name:        `Copy of ${source.name}`,
+      name: `Copy of ${source.name}`,
       description: source.description,
       coverPhoto:  source.coverPhoto,
       startDate:   source.startDate,
