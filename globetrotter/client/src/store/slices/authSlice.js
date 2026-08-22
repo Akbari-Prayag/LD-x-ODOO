@@ -1,8 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import api from '../../services/api.js'
 
-const storedToken = localStorage.getItem('token')
-const storedUserValue = localStorage.getItem('user')
+let storedToken = localStorage.getItem('token')
+let storedUserValue = localStorage.getItem('user')
+if (storedToken === 'dummy-token-for-hackathon-demo') {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  storedToken = null
+  storedUserValue = null
+}
 let storedUser = null
 
 try {
@@ -45,31 +51,31 @@ export const updateProfile = createAsyncThunk('auth/updateProfile', async (profi
 })
 
 export const loadUserFromStorage = () => (dispatch) => {
-  let token = localStorage.getItem('token')
-  let user  = localStorage.getItem('user')
-  if (!token) {
-    token = 'dummy-token-for-hackathon-demo'
-    user = JSON.stringify({ name: 'Jinay Demo', email: 'demo@globetrotter.com', role: 'user' })
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', user)
+  const token = localStorage.getItem('token')
+  const user = localStorage.getItem('user')
+  if (token === 'dummy-token-for-hackathon-demo') {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    dispatch(logout())
+    return
   }
-  dispatch(setCredentials({ token, user: JSON.parse(user) }))
+  if (token && user) {
+    try {
+      dispatch(setCredentials({ token, user: JSON.parse(user) }))
+    } catch (_) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      dispatch(logout())
+    }
+  }
 }
-
-let initialToken = null
-let initialUser = null
-try {
-  initialToken = localStorage.getItem('token')
-  const userStr = localStorage.getItem('user')
-  if (userStr) initialUser = JSON.parse(userStr)
-} catch (e) {}
 
 // ─── Slice ───────────────────────────────────────────────────
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user:      storedUser || initialUser || { name: 'Jinay Demo', email: 'demo@globetrotter.com', role: 'user' },
-    token:     storedToken || initialToken || 'dummy-token-for-hackathon-demo',
+    user:      storedUser,
+    token:     storedToken,
     isLoading: false,
     error:     null,
   },
