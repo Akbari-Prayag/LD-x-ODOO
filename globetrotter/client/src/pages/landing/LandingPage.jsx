@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   Compass,
   MapPin,
@@ -9,160 +9,166 @@ import {
   DollarSign,
   ArrowRight,
   Sparkles,
-  CheckCircle2,
   Share2,
   Globe,
-  Heart,
   Star,
-  Users,
-  ShieldCheck,
-  Plane,
-  ChevronRight,
-  ExternalLink,
-  Lock,
-  ArrowUpRight,
-  Clock,
   Check,
-  Eye,
+  ChevronRight,
+  Plane,
+  ArrowUpRight,
+  Layers,
+  Lock,
 } from 'lucide-react'
 import { selectIsAuthenticated } from '../../store/slices/authSlice.js'
 import Logo from '../../components/ui/Logo.jsx'
-import AnimatedNumber from '../../components/ui/AnimatedNumber.jsx'
+import api from '../../services/api.js'
+
+// Fallback high-res curated photography
+const DEFAULT_CITIES = [
+  {
+    id: 1,
+    name: 'Tokyo',
+    country: 'Japan',
+    image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=1200&auto=format&fit=crop&q=80',
+    description: 'Neon skylines, ancient temples, and world-class culinary alleys.',
+    avgDailyCost: '₹8,500',
+    popularity: 98,
+  },
+  {
+    id: 2,
+    name: 'Paris',
+    country: 'France',
+    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&auto=format&fit=crop&q=80',
+    description: 'Iconic architecture, historic museums, and Seine riverside promenades.',
+    avgDailyCost: '€140',
+    popularity: 96,
+  },
+  {
+    id: 3,
+    name: 'Rome',
+    country: 'Italy',
+    image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200&auto=format&fit=crop&q=80',
+    description: 'Centuries of history, the Colosseum, and vibrant piazza culture.',
+    avgDailyCost: '€120',
+    popularity: 95,
+  },
+  {
+    id: 4,
+    name: 'Bali',
+    country: 'Indonesia',
+    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200&auto=format&fit=crop&q=80',
+    description: 'Lush terraced rice fields, coastal cliffs, and serene wellness retreats.',
+    avgDailyCost: '₹4,500',
+    popularity: 97,
+  },
+]
 
 export default function LandingPage() {
-  const navigate = useNavigate()
   const isAuth = useSelector(selectIsAuthenticated)
 
-  // Interactive showcase state
-  const [activeStopIndex, setActiveStopIndex] = useState(0)
+  const [cities, setCities] = useState([])
+  const [loadingCities, setLoadingCities] = useState(true)
+  const [activeStop, setActiveStop] = useState(0)
 
+  // Real Itinerary Showcase stops
   const showcaseStops = [
     {
       city: 'Paris',
       country: 'France',
-      days: '4 Days',
-      dates: 'June 12 – 16',
-      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200',
-      tagline: 'Gothic Cathedrals, Seine Sunsets & Secret Wine Cellars',
+      duration: '4 Days',
+      dates: 'Day 1 – 4',
       budget: '€1,450',
-      lat: '48.8566° N',
-      lng: '2.3522° E',
-      moments: ['Sunrise at Trocadéro', 'Montmartre Secret Bakery Trail', 'Louvre Private Evening Pass'],
+      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&auto=format&fit=crop&q=80',
+      highlights: ['Louvre Priority Pass', 'Eiffel Tower Sunset', 'Seine River Cruise'],
     },
     {
       city: 'Rome',
       country: 'Italy',
-      days: '5 Days',
-      dates: 'June 16 – 21',
-      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200',
-      tagline: 'Centuries of Stone, Espresso Bars & Candlelit Piazzas',
+      duration: '5 Days',
+      dates: 'Day 5 – 9',
       budget: '€1,280',
-      lat: '41.9028° N',
-      lng: '12.4964° E',
-      moments: ['Night Colosseum Exploration', 'Trastevere Handmade Pasta Class', 'Pincio Terrace Sunset'],
+      image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=1200&auto=format&fit=crop&q=80',
+      highlights: ['Colosseum & Forum', 'Trastevere Food Tour', 'Vatican Museums'],
     },
     {
       city: 'Zurich',
       country: 'Switzerland',
-      days: '5 Days',
-      dates: 'June 21 – 26',
-      image: 'https://images.unsplash.com/photo-1515488764276-beab7607c1e6?w=1200',
-      tagline: 'Glacial Waters, Old Town Clock Towers & Alpine Vistas',
+      duration: '5 Days',
+      dates: 'Day 10 – 14',
       budget: '€1,820',
-      lat: '47.3769° N',
-      lng: '8.5417° E',
-      moments: ['Uetliberg Panoramic Ridge Trail', 'Lake Zurich Steamboat Passage', 'Swiss Chocolatier Workshop'],
+      image: 'https://images.unsplash.com/photo-1515488764276-beab7607c1e6?w=1200&auto=format&fit=crop&q=80',
+      highlights: ['Lake Zurich Steamboat', 'Uetliberg Ridge Hike', 'Old Town Heritage Walk'],
     },
   ]
 
-  const editorialDestinations = [
-    {
-      id: 'VOL. 01',
-      name: 'Kyoto',
-      country: 'Japan',
-      curation: 'Bamboo Groves, Wooden Machiya & Ancient Shinto Shrines',
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200',
-      season: 'Spring / Autumn',
-      estBudget: '₹95,000',
-      heroSpan: 'lg:col-span-7',
-    },
-    {
-      id: 'VOL. 02',
-      name: 'Amalfi Coast',
-      country: 'Italy',
-      curation: 'Pastel Cliffside Villages & Tyrrhenian Sea Horizons',
-      image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200',
-      season: 'May – September',
-      estBudget: '₹1,40,000',
-      heroSpan: 'lg:col-span-5',
-    },
-    {
-      id: 'VOL. 03',
-      name: 'Reykjavik & The Highlands',
-      country: 'Iceland',
-      curation: 'Black Sand Beaches, Volcanic Glaciers & Aurora Skies',
-      image: 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200',
-      season: 'Year-Round Expeditions',
-      estBudget: '₹1,75,000',
-      heroSpan: 'lg:col-span-5',
-    },
-    {
-      id: 'VOL. 04',
-      name: 'Tokyo',
-      country: 'Japan',
-      curation: 'Neon Labyrinths, Michelin Alleyways & Futuristic Architecture',
-      image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=1200',
-      season: 'Autumn / Winter',
-      estBudget: '₹1,20,000',
-      heroSpan: 'lg:col-span-7',
-    },
-  ]
+  // Fetch real cities from MySQL backend or Unsplash
+  useEffect(() => {
+    async function loadCities() {
+      try {
+        setLoadingCities(true)
+        const { data } = await api.get('/cities')
+        if (data.success && data.cities && data.cities.length > 0) {
+          setCities(data.cities.slice(0, 4))
+        } else {
+          setCities(DEFAULT_CITIES)
+        }
+      } catch (err) {
+        setCities(DEFAULT_CITIES)
+      } finally {
+        setLoadingCities(false)
+      }
+    }
+    loadCities()
+  }, [])
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-[#f5f2eb] font-sans selection:bg-[#e05a38] selection:text-white overflow-x-hidden">
-      {/* ── 1. Top Editorial Masthead & Navigation Bar ── */}
-      <header className="sticky top-0 z-50 w-full bg-[#0b0e14]/90 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-          {/* Masthead Brand */}
-          <Link to="/" className="flex items-center gap-3 group">
+    <div className="min-h-screen bg-[#0c1222] text-[#f0f8fb] font-sans selection:bg-[#3b72de] selection:text-white">
+      {/* ── 1. Clean Navigation Bar with Direct Login ── */}
+      <header className="sticky top-0 z-50 w-full bg-[#0c1222]/90 backdrop-blur-xl border-b border-[#223883]/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
             <Logo variant="white" size="md" />
-            <span className="hidden sm:inline-block pl-3 border-l border-white/20 text-[10px] font-mono tracking-widest text-[#b8b19f] uppercase">
-              Travel Planning OS
-            </span>
           </Link>
 
-          {/* Editorial Section Jump Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-mono uppercase tracking-widest text-[#b8b19f]">
-            <a href="#showcase" className="hover:text-white transition-colors">
-              01 / Itinerary Canvas
-            </a>
-            <a href="#architecture" className="hover:text-white transition-colors">
-              02 / Architecture
+          {/* Nav Links */}
+          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold uppercase tracking-wider text-[#89c7e2]">
+            <a href="#canvas" className="hover:text-white transition-colors">
+              Itinerary Canvas
             </a>
             <a href="#destinations" className="hover:text-white transition-colors">
-              03 / Lookbook
+              Destinations
             </a>
-            <a href="#method" className="hover:text-white transition-colors">
-              04 / Method
+            <a href="#features" className="hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="#how-it-works" className="hover:text-white transition-colors">
+              How It Works
             </a>
           </nav>
 
-          {/* Unified High-Contrast Action Button */}
-          <div className="flex items-center gap-4">
+          {/* Top Auth Options */}
+          <div className="flex items-center gap-3">
             {!isAuth ? (
-              <Link
-                to="/login"
-                className="group inline-flex items-center gap-2 px-6 sm:px-7 py-3 rounded-full bg-[#e05a38] hover:bg-[#f06e4b] text-white font-extrabold text-xs sm:text-sm tracking-wide shadow-lg shadow-[#e05a38]/30 hover:scale-105 active:scale-95 transition-all duration-200"
-              >
-                <span>Sign In / Join Free</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  className="px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[#d2e9ec] hover:text-white hover:bg-white/5 transition-all"
+                >
+                  Log In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-5 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#3b72de] to-[#223883] hover:from-[#5c9fdf] hover:to-[#3b72de] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#3b72de]/20 hover:shadow-lg transition-all"
+                >
+                  Get Started Free
+                </Link>
+              </>
             ) : (
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-2 px-6 sm:px-7 py-3 rounded-full bg-white text-[#0b0e14] font-extrabold text-xs sm:text-sm tracking-wide shadow-lg hover:bg-[#f5f2eb] hover:scale-105 transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3b72de] hover:bg-[#5c9fdf] text-white text-xs sm:text-sm font-bold shadow-md transition-all"
               >
-                <span>Open Dashboard</span>
+                <span>Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             )}
@@ -170,254 +176,213 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ── 2. Full-Bleed Cinematic Photo Hero Section ── */}
-      <section className="relative min-h-[90vh] flex flex-col justify-between p-6 sm:p-10 lg:p-16 border-b border-white/10 overflow-hidden">
-        {/* Full-Bleed Background Photography with Dramatic Lighting */}
+      {/* ── 2. Full-Bleed Cinematic Hero Section ── */}
+      <section className="relative min-h-[85vh] flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-20 border-b border-[#223883]/30 overflow-hidden">
+        {/* Background Video / Full-Bleed Imagery with Deep Ocean Gradient Overlay */}
         <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=2000"
-            alt="Majestic mountain valley with golden hour light"
-            className="w-full h-full object-cover opacity-45 scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0b0e14] via-[#0b0e14]/50 to-[#0b0e14]/30" />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&auto=format&fit=crop&q=80"
+            className="w-full h-full object-cover opacity-35"
+          >
+            <source
+              src="https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-waves-coming-to-the-beach-5020-large.mp4"
+              type="video/mp4"
+            />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c1222] via-[#0c1222]/70 to-[#0c1222]/40" />
         </div>
 
-        {/* Top Header Tagline */}
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/15 pb-4 text-xs font-mono uppercase tracking-widest text-[#b8b19f]">
-          <div className="flex items-center gap-2 text-[#e05a38]">
-            <span className="w-2 h-2 rounded-full bg-[#e05a38] animate-pulse" />
-            <span>Vol. 2026 • The Modern Travel Canvas</span>
-          </div>
-          <div>Multi-City Routing • Multi-Currency Ledger • Public Magazines</div>
-        </div>
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#223883]/60 border border-[#89c7e2]/30 text-[#89c7e2] text-xs font-semibold backdrop-blur-md"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#89c7e2]" />
+            <span>The Modern Travel Planning Platform</span>
+          </motion.div>
 
-        {/* Central Asymmetric Typography & Story */}
-        <div className="relative z-10 py-16 lg:py-24 max-w-5xl space-y-8">
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl xl:text-9xl font-display font-black tracking-tight leading-[0.95] text-[#f5f2eb]">
-            The world is not a spreadsheet.{' '}
-            <span className="italic font-serif font-normal text-[#f06e4b]">
-              Map it like a story.
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl sm:text-6xl lg:text-7xl font-display font-extrabold tracking-tight text-white leading-[1.08]"
+          >
+            Plan Less.{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#89c7e2] via-[#3b72de] to-[#d2e9ec]">
+              Experience More.
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-lg sm:text-2xl text-[#b8b19f] max-w-2xl font-light leading-relaxed">
-            Triply replaces disconnected browser tabs and notes with a single, living itinerary canvas
-            that tracks routes, budgets, and moments across continents.
-          </p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-base sm:text-xl text-[#d2e9ec]/80 max-w-2xl mx-auto font-light leading-relaxed"
+          >
+            Triply brings multi-city route mapping, live multi-currency budgeting, and day-by-day
+            itineraries into one effortless, synchronized canvas.
+          </motion.p>
 
-          {/* Primary Action Button Bar with Integrated Social Proof */}
-          <div className="pt-4 flex flex-col sm:flex-row sm:items-center gap-6">
+          {/* Action CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+          >
             <Link
-              to={isAuth ? '/trips/create' : '/login'}
-              className="inline-flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 rounded-full bg-[#e05a38] hover:bg-[#f06e4b] text-white font-black text-sm sm:text-base uppercase tracking-wider shadow-2xl shadow-[#e05a38]/40 hover:scale-105 active:scale-95 transition-all"
+              to={isAuth ? '/trips/create' : '/register'}
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#3b72de] to-[#223883] hover:from-[#5c9fdf] hover:to-[#3b72de] text-white font-bold text-sm sm:text-base shadow-xl shadow-[#3b72de]/25 hover:scale-105 transition-all flex items-center justify-center gap-2"
             >
-              <span>{isAuth ? 'Create New Trip Canvas' : 'Start Planning Free'}</span>
-              <ArrowRight className="w-5 h-5" />
+              <span>Start Planning Free</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
-
             <Link
               to="/trip/public/golden-triangle-adventure-BYB_b0"
-              className="inline-flex items-center gap-2 text-xs sm:text-sm font-mono uppercase tracking-wider text-[#f5f2eb] hover:text-[#e05a38] transition-colors border-b border-white/30 hover:border-[#e05a38] pb-1 w-fit"
+              className="w-full sm:w-auto px-7 py-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-semibold text-sm sm:text-base backdrop-blur-md transition-all flex items-center justify-center gap-2"
             >
+              <Compass className="w-4 h-4 text-[#89c7e2]" />
               <span>Explore Sample Itinerary</span>
-              <ArrowUpRight className="w-4 h-4" />
             </Link>
-          </div>
-        </div>
-
-        {/* Bottom Editorial Stats Bar */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-white/15">
-          {[
-            { num: 120, suffix: '+', label: 'Countries Documented' },
-            { num: 50, suffix: 'k+', label: 'Active Voyagers' },
-            { num: 98, suffix: '%', label: 'On-Budget Success' },
-            { num: 1, suffix: ' Click', label: 'Public Trip Duplicate' },
-          ].map((item, idx) => (
-            <div key={idx} className="space-y-0.5">
-              <p className="text-2xl sm:text-4xl font-display font-black text-[#f5f2eb]">
-                <AnimatedNumber value={item.num} />
-                <span className="text-[#e05a38]">{item.suffix}</span>
-              </p>
-              <p className="text-[11px] font-mono uppercase tracking-wider text-[#b8b19f]">{item.label}</p>
-            </div>
-          ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* ── 3. The "Living Canvas" Master Itinerary Showcase (Curiosity-to-Conversion) ── */}
-      <section id="showcase" className="py-24 lg:py-36 max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-white/10 pb-8">
-          <div className="space-y-3 max-w-2xl">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#e05a38] font-bold">
-              Living Itinerary Architecture
+      {/* ── 3. Interactive Itinerary Canvas Showcase ── */}
+      <section id="canvas" className="py-20 lg:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#223883]/40 pb-6">
+          <div className="space-y-2">
+            <span className="text-xs font-mono uppercase tracking-widest text-[#89c7e2] font-bold">
+              Featured Itinerary Example
             </span>
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black text-[#f5f2eb] tracking-tight">
-              A synchronized canvas for multi-city voyages.
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-white">
+              Grand European Summer Expedition
             </h2>
           </div>
-
           <Link
             to={isAuth ? '/trips/create' : '/login'}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-[#f5f2eb] text-xs font-mono uppercase tracking-widest transition-all w-fit"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#89c7e2] hover:text-white transition-colors"
           >
-            <span>Draft Your Itinerary</span>
+            <span>Create Your Itinerary</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* ── Magazine-Grade Interactive Console ── */}
-        <div className="rounded-[2.5rem] bg-[#121722] border border-white/10 shadow-2xl overflow-hidden">
-          {/* Header Bar */}
-          <div className="bg-[#0b0e14] px-6 py-4 flex flex-wrap items-center justify-between gap-4 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#e05a38]" />
-              <span className="font-mono text-xs text-[#b8b19f]">
-                triply.app/public/grand-european-expedition-2026
-              </span>
-            </div>
-            <div className="flex items-center gap-3 text-xs font-mono text-[#b8b19f]">
-              <span>14 Days</span>
-              <span>•</span>
-              <span>3 Cities</span>
-              <span>•</span>
-              <span className="text-emerald-400">€4,550 Total Est.</span>
-            </div>
-          </div>
-
-          {/* Interactive Stop Switcher Strip */}
-          <div className="grid grid-cols-3 border-b border-white/10 bg-[#0e121b]">
+        {/* Master Showcase Console */}
+        <div className="rounded-3xl bg-[#16255b]/60 border border-[#223883] shadow-2xl overflow-hidden backdrop-blur-md">
+          {/* Stop Tabs */}
+          <div className="grid grid-cols-3 border-b border-[#223883]/80 bg-[#0e172e]">
             {showcaseStops.map((stop, idx) => {
-              const isActive = activeStopIndex === idx
+              const isActive = activeStop === idx
               return (
                 <button
                   key={idx}
-                  onClick={() => setActiveStopIndex(idx)}
-                  className={`p-4 sm:p-7 text-left transition-all duration-300 relative border-r last:border-r-0 border-white/10 ${
-                    isActive ? 'bg-[#121722] opacity-100' : 'opacity-50 hover:opacity-80'
+                  onClick={() => setActiveStop(idx)}
+                  className={`p-4 sm:p-6 text-left transition-all relative border-r last:border-r-0 border-[#223883]/60 ${
+                    activeStop === idx ? 'bg-[#16255b] text-white' : 'text-[#89c7e2]/70 hover:text-white'
                   }`}
                 >
-                  {isActive && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-[#e05a38]" />
+                  {activeStop === idx && (
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-[#3b72de]" />
                   )}
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-[#e05a38] font-bold">
-                    Stop 0{idx + 1} • {stop.days}
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-[#89c7e2] font-bold">
+                    Stop 0{idx + 1} • {stop.duration}
                   </p>
-                  <h4 className="text-lg sm:text-2xl font-display font-black text-[#f5f2eb]">
-                    {stop.city}
-                  </h4>
-                  <p className="text-xs font-mono text-[#b8b19f] hidden sm:block">{stop.dates}</p>
+                  <h4 className="text-lg sm:text-xl font-display font-bold truncate">{stop.city}</h4>
+                  <p className="text-xs text-[#d2e9ec]/60 truncate hidden sm:block">{stop.dates}</p>
                 </button>
               )
             })}
           </div>
 
-          {/* Stop Content Grid */}
+          {/* Active Stop Preview Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-            {/* Left: Full Photo Story */}
-            <div className="lg:col-span-7 p-6 sm:p-10 space-y-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs font-mono text-[#b8b19f]">
-                  <MapPin className="w-3.5 h-3.5 text-[#e05a38]" />
-                  <span>
-                    {showcaseStops[activeStopIndex].lat}, {showcaseStops[activeStopIndex].lng}
-                  </span>
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-display font-black text-[#f5f2eb]">
-                  {showcaseStops[activeStopIndex].city} —{' '}
-                  <span className="font-serif font-normal italic text-[#e05a38]">
-                    {showcaseStops[activeStopIndex].tagline}
-                  </span>
-                </h3>
-              </div>
-
-              {/* Large Format Photo */}
-              <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+            {/* Photo & Highlights */}
+            <div className="lg:col-span-7 p-6 sm:p-8 space-y-6">
+              <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden border border-[#223883]">
                 <img
-                  src={showcaseStops[activeStopIndex].image}
-                  alt={showcaseStops[activeStopIndex].city}
+                  src={showcaseStops[activeStop].image}
+                  alt={showcaseStops[activeStop].city}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-4 left-4 right-4 p-3 rounded-xl bg-[#0b0e14]/80 backdrop-blur-md text-xs font-mono text-[#f5f2eb] flex items-center justify-between border border-white/10">
-                  <span>City Budget: {showcaseStops[activeStopIndex].budget}</span>
-                  <span className="text-[#e05a38] font-bold">Documented Itinerary</span>
+                <div className="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-[#0c1222]/80 backdrop-blur-md text-xs flex items-center justify-between text-white border border-white/10">
+                  <span className="font-mono">Est. Budget: {showcaseStops[activeStop].budget}</span>
+                  <span className="text-[#89c7e2] font-semibold">{showcaseStops[activeStop].country}</span>
                 </div>
               </div>
 
-              {/* Scheduled Moments */}
-              <div className="space-y-2.5">
-                <p className="text-[11px] font-mono uppercase tracking-widest text-[#b8b19f] font-bold">
-                  Curated Day Highlights:
+              <div className="space-y-2">
+                <p className="text-xs font-mono uppercase tracking-wider text-[#89c7e2] font-bold">
+                  Daily Itinerary Highlights:
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {showcaseStops[activeStopIndex].moments.map((moment, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {showcaseStops[activeStop].highlights.map((h, i) => (
                     <div
                       key={i}
-                      className="p-3 rounded-xl bg-[#0e121b] border border-white/10 text-xs text-[#f5f2eb] flex items-start gap-2"
+                      className="p-3 rounded-xl bg-[#0c1222]/60 border border-[#223883] text-xs text-[#d2e9ec] flex items-center gap-2"
                     >
-                      <Check className="w-3.5 h-3.5 text-[#e05a38] flex-shrink-0 mt-0.5" />
-                      <span className="font-light">{moment}</span>
+                      <Check className="w-3.5 h-3.5 text-[#3b72de] flex-shrink-0" />
+                      <span className="truncate">{h}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Right: Multi-Currency Ledger & Conversion Teaser Box */}
-            <div className="lg:col-span-5 bg-[#0e121b] border-t lg:border-t-0 lg:border-l border-white/10 p-6 sm:p-10 flex flex-col justify-between space-y-8">
+            {/* Budget Ledger Widget */}
+            <div className="lg:col-span-5 bg-[#0e172e]/80 border-t lg:border-t-0 lg:border-l border-[#223883] p-6 sm:p-8 flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <span className="text-xs font-mono uppercase tracking-widest text-[#f5f2eb] font-bold">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono uppercase tracking-widest text-[#89c7e2] font-bold">
                     Multi-Currency Ledger
                   </span>
-                  <span className="text-[10px] font-mono uppercase text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-0.5 rounded-full">
-                    Auto-Synced EUR/INR
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded-full">
+                    Auto-Converted
                   </span>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#121722] border border-white/10 space-y-4">
+                <div className="p-4 rounded-2xl bg-[#16255b]/40 border border-[#223883] space-y-3">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-[#b8b19f]">Total Allocation</span>
-                    <span className="font-bold text-white text-base">€4,550 / €5,000</span>
+                    <span className="text-[#d2e9ec]/70">Total Itinerary Spend</span>
+                    <span className="font-bold text-white">€4,550 / €5,000</span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-[#0b0e14] overflow-hidden">
-                    <div className="w-[91%] h-full bg-[#e05a38] rounded-full" />
+                  <div className="w-full h-2 rounded-full bg-[#0c1222] overflow-hidden">
+                    <div className="w-[91%] h-full bg-gradient-to-r from-[#89c7e2] via-[#3b72de] to-emerald-400 rounded-full" />
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-mono">
-                    <div className="p-2.5 rounded-xl bg-[#0b0e14] border border-white/5">
-                      <p className="text-[#b8b19f]">Stays</p>
-                      <p className="font-bold text-white mt-0.5">€2,100</p>
+                  <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono text-[#d2e9ec]">
+                    <div className="p-2 rounded-lg bg-[#0c1222]/80">
+                      <p className="text-[#89c7e2]">Stays</p>
+                      <p className="font-bold text-white">€2,100</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-[#0b0e14] border border-white/5">
-                      <p className="text-[#b8b19f]">Activities</p>
-                      <p className="font-bold text-white mt-0.5">€1,350</p>
+                    <div className="p-2 rounded-lg bg-[#0c1222]/80">
+                      <p className="text-[#89c7e2]">Activities</p>
+                      <p className="font-bold text-white">€1,350</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-[#0b0e14] border border-white/5">
-                      <p className="text-[#b8b19f]">Transit</p>
-                      <p className="font-bold text-white mt-0.5">€1,100</p>
+                    <div className="p-2 rounded-lg bg-[#0c1222]/80">
+                      <p className="text-[#89c7e2]">Transit</p>
+                      <p className="font-bold text-white">€1,100</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* 🔒 The Teaser Lock Box (Direct Conversion Drive) */}
-              <div className="p-7 rounded-2xl bg-[#151b27] border border-white/15 space-y-4 relative overflow-hidden shadow-xl">
-                <div className="flex items-center gap-2 text-[#e05a38] text-xs font-mono uppercase tracking-widest font-bold">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Build Your Own Route</span>
-                </div>
-                <h4 className="text-xl font-display font-bold text-white leading-snug">
-                  Clone this itinerary or build an original canvas in seconds.
-                </h4>
-                <p className="text-xs text-[#b8b19f] leading-relaxed font-light">
-                  Join Triply today. Keep all your stops, activities, budgets, and dates unified in one
-                  canvas.
+              {/* Conversion Block */}
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-[#1e3070] to-[#223883] border border-[#3b72de]/40 space-y-3 text-white">
+                <h4 className="text-base font-display font-bold">Build Your Custom Itinerary</h4>
+                <p className="text-xs text-[#d2e9ec]/80 leading-relaxed font-light">
+                  Sign up in 10 seconds to create, reorder, and budget your own multi-city travel routes.
                 </p>
-
                 <Link
                   to={isAuth ? '/trips/create' : '/login'}
-                  className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl bg-[#e05a38] hover:bg-[#f06e4b] text-white font-black text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition-all"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-white hover:bg-[#d2e9ec] text-[#1e3070] font-bold text-xs uppercase tracking-wider transition-all shadow-md"
                 >
-                  <span>Claim Your Free Canvas</span>
+                  <span>Start Planning</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -426,197 +391,153 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 4. The Four Pillars of Architecture Section ── */}
-      <section id="architecture" className="py-24 lg:py-36 bg-[#0e121b] border-t border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end border-b border-white/10 pb-8">
-            <div className="lg:col-span-8 space-y-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-[#e05a38] font-bold">
-                Triply Architecture
+      {/* ── 4. Real Destination Catalog Showcase (From DB) ── */}
+      <section id="destinations" className="py-20 bg-[#0e172e] border-t border-b border-[#223883]/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#89c7e2] font-bold">
+                Destination Library
               </span>
-              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black text-[#f5f2eb] tracking-tight">
-                Designed for complex, multi-stop itineraries.
+              <h2 className="text-3xl sm:text-4xl font-display font-bold text-white">
+                Popular Cities on Triply
               </h2>
             </div>
-            <p className="lg:col-span-4 text-xs font-mono text-[#b8b19f] leading-relaxed">
-              No more fragmented spreadsheets, screenshot folders, or scattered confirmation emails.
-            </p>
+            <Link
+              to="/cities"
+              className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#89c7e2] hover:text-white transition-colors"
+            >
+              <span>Explore All Cities</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                num: '01',
-                title: 'Multi-City Route Sequencer',
-                desc: 'Connect unlimited stops with smart transit durations, arrival dates, and interactive Leaflet map rails.',
-                tag: 'Route Sequencing',
-              },
-              {
-                num: '02',
-                title: 'Real-Time Financial Ledger',
-                desc: 'Allocate spending across hotels, dining, flights, and excursions with automated multi-currency conversion.',
-                tag: 'Expense Control',
-              },
-              {
-                num: '03',
-                title: 'Curated Sights & Stays Catalog',
-                desc: 'Access verified activities, hidden food walks, museum passes, and hotel bookings across 100+ cities.',
-                tag: 'Curated Library',
-              },
-              {
-                num: '04',
-                title: '1-Click Social Magazine Sharing',
-                desc: 'Publish high-resolution public itineraries with live QR codes. Friends can selectively copy any stop into their trips.',
-                tag: 'Publishing',
-              },
-            ].map((pillar, idx) => (
+          {/* Grid of Real Cities */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {(cities.length > 0 ? cities : DEFAULT_CITIES).map((city) => (
               <div
-                key={idx}
-                className="p-8 sm:p-10 rounded-3xl bg-[#121722] border border-white/10 hover:border-[#e05a38] transition-all duration-300 space-y-6 group"
+                key={city.id || city._id}
+                className="group relative rounded-3xl overflow-hidden border border-[#223883] bg-[#16255b]/40 flex flex-col justify-between aspect-[3/4] shadow-lg"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-4xl font-black text-[#e05a38]">{pillar.num}</span>
-                  <span className="px-3 py-1 rounded-full bg-white/5 text-[10px] font-mono uppercase tracking-wider text-[#b8b19f]">
-                    {pillar.tag}
+                <img
+                  src={city.image || DEFAULT_CITIES[0].image}
+                  alt={city.name}
+                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 group-hover:opacity-75 transition-all duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c1222] via-[#0c1222]/30 to-transparent" />
+
+                <div className="relative z-10 p-5 flex items-center justify-between">
+                  <span className="px-2.5 py-1 rounded-full bg-[#0c1222]/80 backdrop-blur-md text-[10px] font-mono text-[#89c7e2]">
+                    {city.country}
                   </span>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="text-2xl font-display font-bold text-white group-hover:text-[#f06e4b] transition-colors">
-                    {pillar.title}
-                  </h4>
-                  <p className="text-sm text-[#b8b19f] leading-relaxed font-light">{pillar.desc}</p>
+
+                <div className="relative z-10 p-5 space-y-2">
+                  <h4 className="text-2xl font-display font-bold text-white">{city.name}</h4>
+                  <p className="text-xs text-[#d2e9ec]/70 line-clamp-2">{city.description}</p>
+                  <div className="pt-2">
+                    <Link
+                      to={`/trips/create?destination=${encodeURIComponent(city.name)}`}
+                      className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-[#d2e9ec] text-[#1e3070] font-bold text-xs transition-colors shadow-sm"
+                    >
+                      <span>Plan Trip Here</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Third Action Touchpoint */}
-          <div className="p-8 sm:p-10 rounded-3xl bg-[#151b27] border border-white/15 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
-            <div className="space-y-1 text-center md:text-left">
-              <h4 className="text-xl font-display font-bold text-white">Experience Triply on your next journey</h4>
-              <p className="text-xs text-[#b8b19f]">Start drafting an itinerary in under 60 seconds.</p>
-            </div>
+      {/* ── 5. Features Grid ── */}
+      <section id="features" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <span className="text-xs font-mono uppercase tracking-widest text-[#89c7e2] font-bold">
+            Platform Capabilities
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-display font-bold text-white">
+            Everything you need for seamless travel
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              title: 'Multi-City Route Planner',
+              desc: 'Connect unlimited destinations with smart calendar scheduling and route previews.',
+              icon: Compass,
+            },
+            {
+              title: 'Real-Time Budget Tracker',
+              desc: 'Allocate spending across hotels, dining, and flights with multi-currency support.',
+              icon: DollarSign,
+            },
+            {
+              title: 'Curated Activities Library',
+              desc: 'Explore verified sightseeing spots, walking tours, and excursions across 20+ cities.',
+              icon: Sparkles,
+            },
+            {
+              title: '1-Click Public Itinerary Share',
+              desc: 'Share public itineraries with friends, family, and travel groups effortlessly.',
+              icon: Share2,
+            },
+          ].map((item, idx) => {
+            const Icon = item.icon
+            return (
+              <div
+                key={idx}
+                className="p-6 rounded-3xl bg-[#16255b]/40 border border-[#223883] hover:border-[#3b72de] transition-all space-y-4 shadow-sm"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-[#223883] text-[#89c7e2] flex items-center justify-center">
+                  <Icon className="w-6 h-6" />
+                </div>
+                <h4 className="text-lg font-display font-bold text-white">{item.title}</h4>
+                <p className="text-xs sm:text-sm text-[#d2e9ec]/70 leading-relaxed font-light">{item.desc}</p>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── 6. Bottom CTA Banner ── */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-3xl bg-gradient-to-r from-[#1e3070] via-[#223883] to-[#1e3070] border border-[#3b72de]/40 p-8 sm:p-14 text-center space-y-6 shadow-2xl">
+          <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-white tracking-tight">
+            Ready to plan your next journey?
+          </h2>
+          <p className="text-sm sm:text-base text-[#d2e9ec]/80 max-w-xl mx-auto font-light">
+            Join Triply today. Build your dream itinerary, organize your budget, and explore the world.
+          </p>
+          <div className="pt-2">
             <Link
-              to={isAuth ? '/trips/create' : '/login'}
-              className="px-8 py-4 rounded-full bg-[#e05a38] hover:bg-[#f06e4b] text-white font-black text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition-all flex-shrink-0"
+              to={isAuth ? '/dashboard' : '/register'}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white hover:bg-[#d2e9ec] text-[#1e3070] font-bold text-sm sm:text-base shadow-xl hover:scale-105 transition-all"
             >
-              Start Planning Free ➔
+              <span>{isAuth ? 'Go to Dashboard' : 'Get Started Free'}</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── 5. Editorial Lookbook (Double-Page Magazine Spread Layout) ── */}
-      <section id="destinations" className="py-24 lg:py-36 max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-white/10 pb-8">
-          <div className="space-y-3">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#e05a38] font-bold">
-              Editorial Destination Lookbook
-            </span>
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black text-[#f5f2eb] tracking-tight">
-              Curated Itinerary Inspirations
-            </h2>
-          </div>
-          <Link
-            to="/cities"
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-[#b8b19f] hover:text-[#e05a38] transition-colors"
-          >
-            <span>View All Catalog Cities</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* Asymmetric Magazine Spread Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {editorialDestinations.map((item) => (
-            <div
-              key={item.id}
-              className={`${item.heroSpan} group relative rounded-3xl overflow-hidden border border-white/10 bg-[#121722] min-h-[420px] lg:min-h-[500px] flex flex-col justify-between p-7 sm:p-10 shadow-2xl`}
-            >
-              {/* Full-bleed Photo Background */}
-              <img
-                src={item.image}
-                alt={item.name}
-                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 group-hover:opacity-75 transition-all duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0b0e14] via-[#0b0e14]/40 to-transparent" />
-
-              {/* Top Tag & Budget */}
-              <div className="relative z-10 flex items-center justify-between text-xs font-mono">
-                <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-[#f06e4b] font-bold">
-                  {item.id}
-                </span>
-                <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white font-bold">
-                  {item.estBudget} est.
-                </span>
-              </div>
-
-              {/* Bottom Details & Action */}
-              <div className="relative z-10 space-y-3">
-                <p className="text-xs font-mono uppercase tracking-widest text-[#b8b19f]">
-                  {item.country} • {item.season}
-                </p>
-                <h4 className="text-3xl sm:text-4xl font-display font-black text-white">{item.name}</h4>
-                <p className="text-xs sm:text-sm text-slate-300 font-light max-w-lg">{item.curation}</p>
-
-                <div className="pt-2">
-                  <Link
-                    to={`/trips/create?destination=${encodeURIComponent(item.name)}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white hover:bg-[#e05a38] text-[#0b0e14] hover:text-white font-black text-xs uppercase tracking-wider shadow-lg transition-all duration-200"
-                  >
-                    <span>Plan Trip Here</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── 6. Full-Bleed High-Impact Conversion Banner ── */}
-      <section className="py-24 lg:py-36 max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="rounded-[3rem] bg-[#121722] border border-white/15 p-10 sm:p-16 lg:p-24 text-center space-y-8 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#e05a38]/15 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-3xl mx-auto space-y-6">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#e05a38] font-bold">
-              Join 50,000+ Voyagers
-            </span>
-            <h2 className="text-4xl sm:text-6xl lg:text-7xl font-display font-black text-white tracking-tight leading-[1.02]">
-              Your dream itinerary starts with one click.
-            </h2>
-            <p className="text-base sm:text-lg text-[#b8b19f] font-light max-w-xl mx-auto">
-              Build your routes, organize stays, and share unforgettable adventures with Triply today.
-            </p>
-
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to={isAuth ? '/dashboard' : '/login'}
-                className="w-full sm:w-auto px-10 py-5 rounded-full bg-[#e05a38] hover:bg-[#f06e4b] text-white font-black text-sm uppercase tracking-wider shadow-2xl hover:scale-105 transition-all"
-              >
-                <span>{isAuth ? 'Go to Dashboard' : 'Get Started Free Now'}</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7. Editorial Masthead Footer ── */}
-      <footer className="border-t border-white/10 bg-[#080a0f] py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-[#b8b19f] font-mono">
+      {/* ── 7. Clean Footer ── */}
+      <footer className="border-t border-[#223883]/40 bg-[#080d19] py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-[#89c7e2]/70 font-mono">
           <div className="flex items-center gap-2">
             <Logo variant="white" size="sm" />
           </div>
-          <p>© {new Date().getFullYear()} Triply Inc. The Intelligent Travel Planning Operating System.</p>
-          <div className="flex items-center gap-6 font-bold uppercase">
-            <Link to="/login" className="hover:text-[#e05a38]">
-              Sign In
+          <p>© {new Date().getFullYear()} Triply. All rights reserved.</p>
+          <div className="flex items-center gap-6 font-semibold uppercase">
+            <Link to="/login" className="hover:text-white">
+              Log In
             </Link>
-            <Link to="/cities" className="hover:text-[#e05a38]">
-              Destinations
+            <Link to="/cities" className="hover:text-white">
+              Cities
             </Link>
-            <Link to="/activities" className="hover:text-[#e05a38]">
+            <Link to="/activities" className="hover:text-white">
               Activities
             </Link>
           </div>
