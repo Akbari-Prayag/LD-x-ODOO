@@ -19,6 +19,7 @@ import { cn } from '../../utils/cn.js'
 const NAV_ITEMS = [
   { label: 'Dashboard',   to: '/dashboard',   icon: LayoutDashboard },
   { label: 'My Trips',    to: '/trips',        icon: Map },
+  { label: 'Calendar',    to: '/calendar',     icon: Calendar },
   { label: 'Cities',      to: '/cities',       icon: Search },
   { label: 'Activities',  to: '/activities',   icon: Activity },
 ]

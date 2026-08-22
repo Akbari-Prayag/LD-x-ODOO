@@ -7,6 +7,7 @@ router.post('/register',        ctrl.register)
 router.post('/login',           ctrl.login)
 router.get('/me',         protect, ctrl.getMe)
 router.post('/forgot-password', ctrl.forgotPassword)
-router.post('/reset-password/:token', ctrl.resetPassword)
+router.post('/verify-reset-otp', ctrl.verifyResetOtp)
+router.post('/reset-password', ctrl.resetPassword)
 
 module.exports = router
