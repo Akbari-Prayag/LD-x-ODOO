@@ -79,7 +79,7 @@ export default function RecentTripsTable({
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', 'globetrotter_trips_report.csv')
+    link.setAttribute('download', 'triply_trips_report.csv')
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

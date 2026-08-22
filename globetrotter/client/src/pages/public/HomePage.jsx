@@ -10,7 +10,7 @@ export default function HomePage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 text-white">
               <Compass className="h-5 w-5" />
             </span>
-            <span className="font-display text-lg font-semibold">GlobeTrotter</span>
+            <span className="font-display text-lg font-semibold">Triply</span>
           </Link>
 
           <div className="flex items-center gap-2">

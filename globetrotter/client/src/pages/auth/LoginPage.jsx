@@ -49,11 +49,11 @@ export default function LoginPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1.5 text-left">
-        <span className="text-[11px] font-mono uppercase tracking-widest text-[#e05a38] font-bold">
+        <span className="text-[11px] font-mono uppercase tracking-widest text-[#3b72de] font-bold">
           Account Access
         </span>
         <h2 className="text-2xl sm:text-3xl font-display font-black text-[#0f172a] dark:text-white tracking-tight">
-          Welcome back to GlobeTrotter
+          Welcome back to Triply
         </h2>
         <p className="text-xs sm:text-sm text-surface-500 font-light">
           Enter your credentials to access your routes, itineraries, and travel journals.
@@ -174,13 +174,13 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-[#0f172a] hover:bg-[#1e293b] dark:bg-[#e05a38] dark:hover:bg-[#f06e4b] text-white font-extrabold text-sm tracking-wide shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.99]"
+          className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-[#3b72de] hover:bg-[#2c5ec6] text-white font-extrabold text-sm tracking-wide shadow-xl shadow-[#3b72de]/25 hover:shadow-2xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.99]"
         >
           {isLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <>
-              <span>Sign In to GlobeTrotter</span>
+              <span>Sign In to Triply</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -203,7 +203,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleFillDemo('demo@globetrotter.com', 'demo123')}
-              className="p-2 text-left rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:border-[#e05a38] text-xs transition-colors"
+              className="p-2 text-left rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:border-[#3b72de] text-xs transition-colors"
             >
               <p className="font-bold text-surface-900 dark:text-white">Traveler</p>
               <p className="text-[10px] text-surface-400 font-mono">demo@globetrotter.com</p>
@@ -211,7 +211,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleFillDemo('admin@globetrotter.com', 'admin123')}
-              className="p-2 text-left rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:border-[#e05a38] text-xs transition-colors"
+              className="p-2 text-left rounded-xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:border-[#3b72de] text-xs transition-colors"
             >
               <p className="font-bold text-surface-900 dark:text-white">Admin</p>
               <p className="text-[10px] text-surface-400 font-mono">admin@globetrotter.com</p>
@@ -222,10 +222,10 @@ export default function LoginPage() {
 
       {/* Footer Switch to Register */}
       <p className="text-center text-xs text-surface-500 pt-1">
-        Don't have a GlobeTrotter account?{' '}
+        Don't have a Triply account?{' '}
         <Link
           to="/register"
-          className="font-bold text-[#e05a38] hover:underline underline-offset-2 transition-colors"
+          className="font-bold text-[#3b72de] hover:underline underline-offset-2 transition-colors"
         >
           Create an account free
         </Link>

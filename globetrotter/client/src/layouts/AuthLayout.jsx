@@ -57,7 +57,7 @@ export default function AuthLayout() {
 
         {/* Footer Note */}
         <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 font-mono border-t border-white/10 pt-4">
-          <span>GlobeTrotter Operating System</span>
+          <span>Triply Travel Platform</span>
           <Link to="/" className="text-slate-300 hover:text-white underline">
             ← Back to Landing Page
           </Link>
