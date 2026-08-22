@@ -3,8 +3,8 @@ import { ArrowUpRight, Compass, Globe, Map, Sparkles } from 'lucide-react'
 
 export default function AuthLayout() {
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#d5e8e8] flex">
-      <div className="hidden lg:flex lg:w-[46%] xl:w-[52%] flex-col p-7 xl:p-9 relative overflow-hidden bg-[#2d3e86]">
+    <div className="h-screen overflow-hidden bg-[#d5e8e8] flex">
+      <div className="hidden lg:flex lg:w-[46%] xl:w-[48%] flex-col p-6 xl:p-8 relative overflow-hidden bg-[#2d3e86]">
         <div className="absolute -right-28 top-24 w-80 h-80 rounded-full border-[52px] border-[#8fc9d8]/20" />
         <div className="absolute -left-20 bottom-20 w-64 h-64 rounded-full border-[34px] border-[#d5e8e8]/10" />
         <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] bg-[size:42px_42px]" />
@@ -67,16 +67,16 @@ export default function AuthLayout() {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-5 md:p-10 bg-[#d5e8e8]">
+      <div className="w-full lg:w-1/2 xl:w-[52%] h-full flex items-center justify-center p-4 md:p-6 bg-[#d5e8e8] overflow-y-auto">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-8 lg:hidden">
+          <div className="flex items-center gap-3 mb-4 lg:hidden">
             <div className="w-9 h-9 bg-[#2d3e86] rounded-xl flex items-center justify-center">
               <Globe className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-display font-bold text-[#2d3e86]">GlobeTrotter</span>
           </div>
 
-          <div className="bg-white rounded-[1.75rem] shadow-[0_24px_60px_rgba(45,62,134,0.16)] border border-white/70 p-6 md:p-9">
+          <div className="bg-white rounded-[1.75rem] shadow-[0_24px_60px_rgba(45,62,134,0.16)] border border-white/70 p-5 md:p-7">
             <Outlet />
           </div>
         </div>
