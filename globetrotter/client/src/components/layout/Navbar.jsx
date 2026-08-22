@@ -94,14 +94,9 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Cmd+K / Ctrl+K — open Command Palette
+  // Escape closes the inline search dropdown
   useEffect(() => {
     function handleKeyDown(e) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        window.dispatchEvent(new CustomEvent('open-command-palette'))
-      }
-      // Escape closes the search dropdown
       if (e.key === 'Escape') {
         setSearchFocused(false)
         setSearchQuery('')
