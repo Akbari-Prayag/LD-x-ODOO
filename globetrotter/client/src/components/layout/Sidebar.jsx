@@ -8,6 +8,7 @@ import {
 import {
   toggleSidebarCollapse,
   toggleMobileMenu,
+  setMobileMenu,
   selectSidebarCollapsed,
   selectMobileMenu,
 } from '../../store/slices/uiSlice.js'
@@ -17,6 +18,7 @@ import { cn } from '../../utils/cn.js'
 const NAV_ITEMS = [
   { label: 'Dashboard',   to: '/dashboard',   icon: LayoutDashboard },
   { label: 'My Trips',    to: '/trips',        icon: Map },
+  { label: 'Calendar',    to: '/calendar',     icon: Calendar },
   { label: 'Cities',      to: '/cities',       icon: Search },
   { label: 'Activities',  to: '/activities',   icon: Activity },
 ]
@@ -169,9 +171,4 @@ export default function Sidebar() {
       </aside>
     </>
   )
-}
-
-// import fix for setMobileMenu used in NavLink onClick
-function setMobileMenu(val) {
-  return { type: 'ui/setMobileMenu', payload: val }
 }

@@ -81,6 +81,8 @@ export default function AppRoutes() {
           <Route path="/trips/:id/itinerary"    element={<ItineraryPage />} />
           <Route path="/trips/:id/budget"       element={<BudgetPage />} />
           <Route path="/trips/:id/calendar"     element={<CalendarPage />} />
+          <Route path="/calendar"               element={<CalendarPage />} />
+          <Route path="/budget"                 element={<BudgetPage />} />
           <Route path="/cities"                 element={<CitiesPage />} />
           <Route path="/activities"             element={<ActivitiesPage />} />
           <Route path="/profile"               element={<ProfilePage />} />
