@@ -35,10 +35,7 @@ export default function ActivitiesPage() {
   const [status, setStatus] = useState('planned');
   const [notes, setNotes] = useState('');
   const [isAdding, setIsAdding] = useState(false);
-<<<<<<< HEAD
-=======
   const [showFilters, setShowFilters] = useState(false);
->>>>>>> feature/jinay-itinerary-discovery
 
   // Fetch activities and trips on load
   useEffect(() => {
@@ -46,8 +43,6 @@ export default function ActivitiesPage() {
     dispatch(fetchTrips());
   }, [dispatch, filters]);
 
-<<<<<<< HEAD
-=======
   // Currency settings for dynamic price range slider
   const currencySettings = {
     'India': { symbol: '₹', max: 10000, step: 500, rate: 1 },
@@ -58,7 +53,6 @@ export default function ActivitiesPage() {
 
   const activeCurrency = currencySettings[filters.country] || currencySettings['India'];
 
->>>>>>> feature/jinay-itinerary-discovery
   // Handle local state / mock fallbacks
   useEffect(() => {
     if (apiActivities && apiActivities.length > 0) {
@@ -76,17 +70,14 @@ export default function ActivitiesPage() {
       if (filters.category) {
         filtered = filtered.filter(a => a.category === filters.category);
       }
-<<<<<<< HEAD
-=======
       if (filters.country) {
-        filtered = filtered.filter(a => a.city?.country.toLowerCase() === filters.country.toLowerCase());
+        filtered = filtered.filter(a => a.city?.country?.toLowerCase() === filters.country.toLowerCase());
       }
->>>>>>> feature/jinay-itinerary-discovery
       if (filters.maxCost) {
         filtered = filtered.filter(a => a.estimatedCost <= Number(filters.maxCost));
       }
       if (filters.duration) {
-        filtered = filtered.filter(a => a.duration.value <= Number(filters.duration));
+        filtered = filtered.filter(a => a.duration?.value <= Number(filters.duration));
       }
       setActivitiesList(filtered);
     }
@@ -243,11 +234,8 @@ export default function ActivitiesPage() {
     { value: 'nightlife', label: '🍻 Nightlife' },
   ];
 
-<<<<<<< HEAD
-=======
   const countries = [...new Set(mockActivities.map(a => a.city?.country).filter(Boolean))];
 
->>>>>>> feature/jinay-itinerary-discovery
   return (
     <div className="min-h-screen bg-surface-50">
       {/* Search Header Banner */}

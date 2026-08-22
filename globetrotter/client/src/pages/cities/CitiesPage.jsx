@@ -33,10 +33,7 @@ export default function CitiesPage() {
   const [accAddress, setAccAddress] = useState('');
   const [accCost, setAccCost] = useState('0');
   const [isAdding, setIsAdding] = useState(false);
-<<<<<<< HEAD
-=======
   const [showFilters, setShowFilters] = useState(false);
->>>>>>> feature/jinay-itinerary-discovery
 
   // Fetch cities and trips on load
   useEffect(() => {
@@ -44,8 +41,6 @@ export default function CitiesPage() {
     dispatch(fetchTrips());
   }, [dispatch, filters]);
 
-<<<<<<< HEAD
-=======
   // Currency settings for dynamic price range slider
   const currencySettings = {
     'India': { symbol: '₹', max: 15000, step: 500, rate: 1 },
@@ -56,7 +51,6 @@ export default function CitiesPage() {
 
   const activeCurrency = currencySettings[filters.country] || currencySettings['India'];
 
->>>>>>> feature/jinay-itinerary-discovery
   // Set local state based on API or Mock fallbacks
   useEffect(() => {
     if (apiCities && apiCities.length > 0) {
@@ -79,21 +73,13 @@ export default function CitiesPage() {
         filtered = filtered.filter(c => c.region.toLowerCase() === filters.region.toLowerCase());
       }
       if (filters.maxCost) {
-<<<<<<< HEAD
-        filtered = filtered.filter(c => c.costIndex <= Number(filters.maxCost));
-=======
-        filtered = filtered.filter(c => c.avgDailyCost <= Number(filters.maxCost));
->>>>>>> feature/jinay-itinerary-discovery
+        filtered = filtered.filter(c => (c.avgDailyCost || c.costIndex) <= Number(filters.maxCost));
       }
       // Sort mock cities
       if (filters.sortBy === 'name') {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
       } else if (filters.sortBy === 'cost') {
-<<<<<<< HEAD
-        filtered.sort((a, b) => a.costIndex - b.costIndex);
-=======
-        filtered.sort((a, b) => a.avgDailyCost - b.avgDailyCost);
->>>>>>> feature/jinay-itinerary-discovery
+        filtered.sort((a, b) => (a.avgDailyCost || a.costIndex) - (b.avgDailyCost || b.costIndex));
       } else {
         filtered.sort((a, b) => b.popularity - a.popularity);
       }
@@ -124,8 +110,6 @@ export default function CitiesPage() {
     dispatch(setFilter({ [key]: value }));
   };
 
-<<<<<<< HEAD
-=======
   const handleCountryChange = (countryName) => {
     // Determine regions of the new country to check if current region is valid
     const newAvailableRegions = countryName
@@ -144,7 +128,6 @@ export default function CitiesPage() {
     }));
   };
 
->>>>>>> feature/jinay-itinerary-discovery
   const handleResetFilters = () => {
     dispatch(clearFilters());
   };
@@ -237,19 +220,7 @@ export default function CitiesPage() {
 
   // Get distinct countries from mock data for filters
   const countries = [...new Set(mockCities.map(c => c.country))];
-<<<<<<< HEAD
 
-  return (
-    <div className="min-h-screen bg-surface-50">
-      {/* Premium Hero Banner */}
-      <div 
-        style={{ backgroundImage: 'linear-gradient(135deg, #2b3e8c 0%, #618d83 100%)' }} 
-        className="relative text-white py-16 px-6 sm:px-12 overflow-hidden rounded-3xl mb-8 shadow-card-md"
-      >
-        {/* Decorative background shapes */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-brand-teal-light via-transparent to-brand-blue-light"></div>
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-brand-teal-medium/20 blur-3xl"></div>
-=======
   const availableRegions = filters.country
     ? [...new Set(mockCities.filter(c => c.country === filters.country).map(c => c.region))]
     : [...new Set(mockCities.map(c => c.region))];
@@ -264,7 +235,6 @@ export default function CitiesPage() {
         {/* Decorative background shapes */}
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-brand-teal-light via-transparent to-brand-blue-light"></div>
         <div className="absolute right-0 top-0 w-64 h-64 rounded-full bg-brand-teal-medium/20 blur-3xl"></div>
->>>>>>> feature/jinay-itinerary-discovery
         
         <div className="relative max-w-4xl mx-auto text-center flex flex-col items-center">
           <Compass className="w-12 h-12 text-brand-teal-light mb-4 animate-spin-slow" />
