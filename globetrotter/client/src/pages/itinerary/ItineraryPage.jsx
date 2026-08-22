@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { 
   ArrowLeft, MapPin, Calendar, Clock, DollarSign, GripVertical, Plus, 
-  Trash2, Edit, Save, Check, RefreshCw, AlertCircle, Compass, Star, Search
+  Trash2, Edit, Save, Check, RefreshCw, AlertCircle, Compass, Star, Search, AlertTriangle
 } from 'lucide-react';
 import {
   DndContext,
@@ -217,6 +217,12 @@ export default function ItineraryPage() {
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [isCustomActModalOpen, setIsCustomActModalOpen] = useState(false);
   const [editActivityObj, setEditActivityObj] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    isOpen: false,
+    targetType: '',
+    targetId: '',
+    targetName: '',
+  });
 
   // Search in modal
   const [cityQuery, setCityQuery] = useState('');
@@ -458,8 +464,6 @@ export default function ItineraryPage() {
   };
 
   const handleDeleteStop = async (stopId) => {
-    if (!window.confirm('Are you sure you want to remove this stop and all its activities?')) return;
-
     try {
       const { data } = await api.delete(`/trips/${tripId}/stops/${stopId}`);
       await saveTripState(data.trip);
@@ -637,8 +641,6 @@ export default function ItineraryPage() {
   };
 
   const handleDeleteActivity = async (activityId) => {
-    if (!window.confirm('Are you sure you want to delete this activity?')) return;
-
     try {
       const { data } = await api.delete(`/trips/${tripId}/stops/${selectedStopId}/activities/${activityId}`);
       await saveTripState(data.trip);
@@ -659,6 +661,45 @@ export default function ItineraryPage() {
       await saveTripState(updatedTrip);
       toast.success('Activity removed locally (Demo Mode)');
     }
+  };
+
+  const openDeleteConfirm = (targetType, targetId) => {
+    if (targetType === 'stop') {
+      const stop = trip?.stops?.find((tripStop) => tripStop._id === targetId);
+      setDeleteConfirm({
+        isOpen: true,
+        targetType,
+        targetId,
+        targetName: stop?.city?.name || stop?.customCityName || 'this stop',
+      });
+      return;
+    }
+
+    const activity = selectedStop?.activities?.find((act) => act._id === targetId);
+    setDeleteConfirm({
+      isOpen: true,
+      targetType,
+      targetId,
+      targetName: activity?.activity?.name || activity?.customName || 'this activity',
+    });
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirm({
+      isOpen: false,
+      targetType: '',
+      targetId: '',
+      targetName: '',
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteConfirm.targetType === 'stop') {
+      await handleDeleteStop(deleteConfirm.targetId);
+    } else if (deleteConfirm.targetType === 'activity') {
+      await handleDeleteActivity(deleteConfirm.targetId);
+    }
+    closeDeleteConfirm();
   };
 
   // Search list filtration (Local)
@@ -784,7 +825,7 @@ export default function ItineraryPage() {
                       stop={stop}
                       isSelected={selectedStopId === stop._id}
                       onClick={() => setSelectedStopId(stop._id)}
-                      onDelete={handleDeleteStop}
+                      onDelete={(stopId) => openDeleteConfirm('stop', stopId)}
                       dragEnabled={tripStopsSorted.length > 1}
                     />
                   ))}
@@ -921,7 +962,7 @@ export default function ItineraryPage() {
                             key={activity._id}
                             activity={activity}
                             onEdit={handleEditActivityClick}
-                            onDelete={handleDeleteActivity}
+                            onDelete={(activityId) => openDeleteConfirm('activity', activityId)}
                             dragEnabled={selectedStopActivitiesSorted.length > 1}
                           />
                         ))}
@@ -1073,6 +1114,46 @@ export default function ItineraryPage() {
       </Modal>
 
       {/* Custom/Edit activity modal */}
+      <Modal
+        isOpen={deleteConfirm.isOpen}
+        onClose={closeDeleteConfirm}
+        title={deleteConfirm.targetType === 'stop' ? 'Remove Destination Stop' : 'Delete Activity'}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-rose-50 border border-rose-100">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-surface-900">
+                {deleteConfirm.targetType === 'stop'
+                  ? `Remove "${deleteConfirm.targetName}" from your trip?`
+                  : `Delete "${deleteConfirm.targetName}"?`}
+              </p>
+              <p className="text-xs text-surface-500 mt-1">
+                {deleteConfirm.targetType === 'stop'
+                  ? 'This will remove the stop and all activities inside it. This action cannot be undone.'
+                  : 'This activity will be removed from your itinerary. This action cannot be undone.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-2 border-t border-surface-100">
+            <Button type="button" variant="ghost" onClick={closeDeleteConfirm}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={handleConfirmDelete}
+              className="px-5"
+            >
+              {deleteConfirm.targetType === 'stop' ? 'Remove Stop' : 'Delete Activity'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal
         isOpen={isCustomActModalOpen}
         onClose={() => {

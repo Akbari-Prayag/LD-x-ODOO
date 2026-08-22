@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Search, SlidersHorizontal, RefreshCw, X, Calendar, Clock, DollarSign } from 'lucide-react';
+import { Search, SlidersHorizontal, RefreshCw, X, Calendar, Clock, DollarSign, Check, MapPin } from 'lucide-react';
 import { fetchActivities, setFilter, clearFilters, selectActivities, selectActivityFilters, selectActivitiesLoading } from '../../store/slices/activitiesSlice.js';
 import { fetchTrips, selectTrips } from '../../store/slices/tripsSlice.js';
 import ActivityCard from '../../components/features/ActivityCard.jsx';
@@ -12,6 +13,7 @@ import { mockActivities, mockTrips } from '../../utils/mockData.js';
 
 export default function ActivitiesPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const apiActivities = useSelector(selectActivities);
   const filters = useSelector(selectActivityFilters);
   const isLoading = useSelector(selectActivitiesLoading);
@@ -34,14 +36,64 @@ export default function ActivitiesPage() {
   const [endTime, setEndTime] = useState('');
   const [status, setStatus] = useState('planned');
   const [notes, setNotes] = useState('');
+  const [openItineraryAfterAdd, setOpenItineraryAfterAdd] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const filterCardRef = useRef(null);
+  const countryDropdownRef = useRef(null);
+  const [countrySearchText, setCountrySearchText] = useState('');
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+
+  const fallbackCountries = [...new Set(mockActivities.map((a) => a.city?.country).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  const [countriesOfWorld, setCountriesOfWorld] = useState(fallbackCountries);
 
   // Fetch activities and trips on load
   useEffect(() => {
     dispatch(fetchActivities(filters));
     dispatch(fetchTrips());
   }, [dispatch, filters]);
+
+  // Close filter panel on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterCardRef.current && !filterCardRef.current.contains(event.target)) {
+        setShowFilters(false);
+      }
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target)) {
+        setShowCountryDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!showFilters) {
+      setShowCountryDropdown(false);
+      setCountrySearchText('');
+    }
+  }, [showFilters]);
+
+  // Load global countries list for the filter dropdown
+  useEffect(() => {
+    const fetchCountriesOfWorld = async () => {
+      try {
+        const response = await fetch('https://countriesnow.space/api/v0.1/countries');
+        const json = await response.json();
+
+        if (json && !json.error && Array.isArray(json.data)) {
+          const names = json.data.map((countryData) => countryData.country).sort((a, b) => a.localeCompare(b));
+          setCountriesOfWorld(names);
+        }
+      } catch (err) {
+        console.error('Failed to fetch countries of world for activities filter, using fallback list', err);
+      }
+    };
+
+    fetchCountriesOfWorld();
+  }, []);
 
   // Currency settings for dynamic price range slider
   const currencySettings = {
@@ -104,15 +156,24 @@ export default function ActivitiesPage() {
       if (trip && trip.stops) {
         setStopsList(trip.stops);
         if (trip.stops.length > 0) {
-          setSelectedStopId(trip.stops[0]._id);
-          setScheduledDate(trip.stops[0].arrivalDate ? trip.stops[0].arrivalDate.split('T')[0] : '');
+          const activityCityName = selectedActivity?.city?.name?.toLowerCase();
+          const matchingStop = activityCityName
+            ? trip.stops.find((stop) => {
+                const stopCityName = (stop.city?.name || stop.customCityName || '').toLowerCase();
+                return stopCityName === activityCityName;
+              })
+            : null;
+          const defaultStop = matchingStop || trip.stops[0];
+
+          setSelectedStopId(defaultStop._id);
+          setScheduledDate(defaultStop.arrivalDate ? defaultStop.arrivalDate.split('T')[0] : '');
         } else {
           setSelectedStopId('');
           setScheduledDate('');
         }
       }
     }
-  }, [selectedTripId, tripsList]);
+  }, [selectedTripId, tripsList, selectedActivity]);
 
   const handleSearchChange = (e) => {
     dispatch(setFilter({ search: e.target.value }));
@@ -135,7 +196,18 @@ export default function ActivitiesPage() {
     setSelectedActivity(activity);
     setIsAddModalOpen(true);
     if (tripsList.length > 0) {
-      setSelectedTripId(tripsList[0]._id);
+      const activityCityName = activity.city?.name?.toLowerCase();
+      const tripWithMatchingStop = activityCityName
+        ? tripsList.find((trip) =>
+            (trip.stops || []).some((stop) => {
+              const stopCityName = (stop.city?.name || stop.customCityName || '').toLowerCase();
+              return stopCityName === activityCityName;
+            })
+          )
+        : null;
+
+      const defaultTrip = tripWithMatchingStop || tripsList[0];
+      setSelectedTripId(defaultTrip._id);
     }
   };
 
@@ -147,6 +219,7 @@ export default function ActivitiesPage() {
     setEndTime('');
     setStatus('planned');
     setNotes('');
+    setOpenItineraryAfterAdd(false);
   };
 
   const handleAddActivitySubmit = async (e) => {
@@ -171,9 +244,15 @@ export default function ActivitiesPage() {
     setIsAdding(true);
     try {
       await api.post(`/trips/${selectedTripId}/stops/${selectedStopId}/activities`, payload);
-      toast.success(`Successfully added ${selectedActivity.name} to your stop!`);
+      const selectedTrip = tripsList.find((trip) => trip._id === selectedTripId);
+      const selectedStop = stopsList.find((stop) => stop._id === selectedStopId);
+      const stopName = selectedStop?.city?.name || selectedStop?.customCityName || 'selected stop';
+      toast.success(`Added "${selectedActivity.name}" to ${selectedTrip?.name || 'trip'} → ${stopName}`);
       dispatch(fetchTrips());
       closeAddModal();
+      if (openItineraryAfterAdd) {
+        navigate(`/trips/${selectedTripId}/itinerary`);
+      }
     } catch (err) {
       console.warn('API call failed, falling back to local simulation', err);
       // Simulate locally in localStorage
@@ -210,7 +289,13 @@ export default function ActivitiesPage() {
           
           localStorage.setItem('globetrotter_trips', JSON.stringify(allLocalTrips));
           setTripsList(allLocalTrips);
-          toast.success(`${selectedActivity.name} added to stop locally (Demo Mode)`);
+          const selectedTrip = allLocalTrips[tripIdx];
+          const selectedStop = allLocalTrips[tripIdx].stops[stopIdx];
+          const stopName = selectedStop?.city?.name || selectedStop?.customCityName || 'selected stop';
+          toast.success(`Added "${selectedActivity.name}" to ${selectedTrip?.name || 'trip'} → ${stopName} (Demo Mode)`);
+          if (openItineraryAfterAdd) {
+            navigate(`/trips/${selectedTripId}/itinerary`);
+          }
         } else {
           toast.error('Stop not found in selected trip.');
         }
@@ -234,7 +319,25 @@ export default function ActivitiesPage() {
     { value: 'nightlife', label: '🍻 Nightlife' },
   ];
 
-  const countries = [...new Set(mockActivities.map(a => a.city?.country).filter(Boolean))];
+  const countries = [...new Set([
+    ...countriesOfWorld,
+    ...fallbackCountries,
+    ...apiActivities.map((activity) => activity.city?.country).filter(Boolean),
+  ])].sort((a, b) => a.localeCompare(b));
+  const selectedTrip = tripsList.find((trip) => trip._id === selectedTripId);
+  const selectedStop = stopsList.find((stop) => stop._id === selectedStopId);
+  const quickTripId = selectedTripId || tripsList[0]?._id || '';
+  const quickTripName = selectedTrip?.name || tripsList[0]?.name || '';
+  const selectedStopName = selectedStop?.city?.name || selectedStop?.customCityName || 'Selected stop';
+  const selectedStopDate = selectedStop?.arrivalDate ? selectedStop.arrivalDate.split('T')[0] : '';
+  const isCityMismatch = Boolean(
+    selectedActivity?.city?.name &&
+    selectedStopName &&
+    selectedStopName.toLowerCase() !== selectedActivity.city.name.toLowerCase()
+  );
+  const filteredCountries = countrySearchText
+    ? countries.filter((country) => country.toLowerCase().includes(countrySearchText.toLowerCase()))
+    : countries;
 
   return (
     <div className="min-h-screen bg-surface-50">
@@ -247,9 +350,50 @@ export default function ActivitiesPage() {
           <p className="text-sm text-surface-500 max-w-lg mb-6">
             Find unique sightseeing, adventure, and food tours across destinations to fill your itinerary days.
           </p>
+          <div className="mb-6 w-full max-w-xl rounded-2xl border border-surface-200 bg-white/90 px-4 py-3 text-left shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wide text-surface-400 font-semibold">
+                  Where activities are saved
+                </p>
+                <p className="text-sm text-surface-700 font-medium truncate">
+                  {quickTripName ? `${quickTripName} itinerary` : 'Select a trip while adding an activity'}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/trips')}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-surface-200 text-surface-600 hover:border-brand-blue-light hover:text-brand-blue-medium hover:bg-brand-blue-pale/40 transition-colors"
+                >
+                  My Trips
+                </button>
+                {quickTripId ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/trips/${quickTripId}/itinerary`)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-brand-teal-light text-brand-teal-dark hover:bg-brand-teal-dark hover:text-white transition-colors"
+                  >
+                    View Itinerary
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/trips/create')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-brand-teal-light text-brand-teal-dark hover:bg-brand-teal-dark hover:text-white transition-colors"
+                  >
+                    Create Trip
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Search Inputs */}
-          <div className="w-full max-w-xl relative flex items-center bg-surface-50 border border-surface-200 rounded-2xl p-1.5 focus-within:border-brand-teal-medium transition-all">
+          <div
+            ref={filterCardRef}
+            className="w-full max-w-xl relative flex items-center bg-surface-50 border border-surface-200 rounded-2xl p-1.5 focus-within:border-brand-teal-medium transition-all"
+          >
             <Search className="w-5 h-5 text-surface-400 ml-3" />
             <input
               type="text"
@@ -292,7 +436,11 @@ export default function ActivitiesPage() {
                   </span>
                   {(filters.search || filters.category || filters.maxCost || filters.duration) && (
                     <button
-                      onClick={handleResetFilters}
+                      onClick={() => {
+                        handleResetFilters();
+                        setCountrySearchText('');
+                        setShowCountryDropdown(false);
+                      }}
                       className="text-xs text-brand-blue-medium hover:text-brand-blue-navy font-semibold transition-colors"
                     >
                       Clear All
@@ -302,20 +450,98 @@ export default function ActivitiesPage() {
 
                 <div className="flex flex-col gap-4">
                   {/* Country Filter */}
-                  <div>
+                  <div ref={countryDropdownRef} className="relative">
                     <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
                       Country
                     </label>
-                    <select
-                      value={filters.country}
-                      onChange={(e) => dispatch(setFilter({ country: e.target.value, maxCost: '' }))}
-                      className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none"
+                    <div
+                      className={`flex items-center gap-2 rounded-xl border px-3 py-2 bg-white cursor-text transition-all ${
+                        showCountryDropdown ? 'border-brand-teal-medium ring-2 ring-brand-teal-light/30' : 'border-surface-200 hover:border-surface-300'
+                      }`}
+                      onClick={() => setShowCountryDropdown(true)}
                     >
-                      <option value="">All Countries</option>
-                      {countries.map(country => (
-                        <option key={country} value={country}>{country}</option>
-                      ))}
-                    </select>
+                      <Search className="w-3.5 h-3.5 text-surface-400 flex-shrink-0" />
+                      <input
+                        type="text"
+                        placeholder={filters.country || 'Search country...'}
+                        value={countrySearchText}
+                        onChange={(e) => {
+                          setCountrySearchText(e.target.value);
+                          setShowCountryDropdown(true);
+                        }}
+                        onFocus={() => setShowCountryDropdown(true)}
+                        className="flex-1 text-sm bg-transparent outline-none text-surface-900 placeholder-surface-400 min-w-0"
+                      />
+                      {filters.country && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dispatch(setFilter({ country: '', maxCost: '' }));
+                            setCountrySearchText('');
+                            setShowCountryDropdown(false);
+                          }}
+                          className="text-surface-300 hover:text-surface-600 transition-colors flex-shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    {filters.country && !showCountryDropdown && (
+                      <div className="mt-1.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-teal-pale text-brand-teal-dark text-xs font-semibold rounded-full">
+                          {filters.country}
+                          <button
+                            onClick={() => {
+                              dispatch(setFilter({ country: '', maxCost: '' }));
+                              setCountrySearchText('');
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      </div>
+                    )}
+                    {showCountryDropdown && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-surface-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                        <div
+                          className="px-4 py-2.5 text-sm text-surface-500 hover:bg-surface-50 cursor-pointer border-b border-surface-100"
+                          onClick={() => {
+                            dispatch(setFilter({ country: '', maxCost: '' }));
+                            setCountrySearchText('');
+                            setShowCountryDropdown(false);
+                          }}
+                        >
+                          All Countries
+                        </div>
+                        <div className="max-h-48 overflow-y-auto">
+                          {filteredCountries.length === 0 ? (
+                            <div className="px-4 py-3 text-sm text-surface-400 text-center">No countries found</div>
+                          ) : filteredCountries.slice(0, 80).map((country) => (
+                            <div
+                              key={country}
+                              className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between ${
+                                filters.country === country
+                                  ? 'bg-brand-teal-pale text-brand-teal-dark font-semibold'
+                                  : 'text-surface-700 hover:bg-surface-50'
+                              }`}
+                              onClick={() => {
+                                dispatch(setFilter({ country, maxCost: '' }));
+                                setCountrySearchText('');
+                                setShowCountryDropdown(false);
+                              }}
+                            >
+                              <span>{country}</span>
+                              {filters.country === country && <Check className="w-3.5 h-3.5 text-brand-teal-dark" />}
+                            </div>
+                          ))}
+                          {filteredCountries.length > 80 && (
+                            <div className="px-4 py-2 text-[11px] text-surface-400 text-center border-t border-surface-100">
+                              Type to narrow down {filteredCountries.length - 80} more...
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Max Cost Filter */}
@@ -475,6 +701,15 @@ export default function ActivitiesPage() {
               ) : (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
                   <p className="text-xs text-amber-700">No active trips found. Create a trip on the dashboard first.</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/trips/create')}
+                    className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-100"
+                  >
+                    Create New Trip
+                  </Button>
                 </div>
               )}
             </div>
@@ -504,7 +739,44 @@ export default function ActivitiesPage() {
                 ) : (
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center">
                     <p className="text-xs text-amber-700">No stops created for this trip yet. Add a city stop first.</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/trips/${selectedTripId}/itinerary`)}
+                      className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-100"
+                    >
+                      Open Trip Itinerary
+                    </Button>
                   </div>
+                )}
+              </div>
+            )}
+
+            {selectedTripId && selectedStopId && (
+              <div className="rounded-xl border border-brand-teal-light/40 bg-brand-teal-pale/40 p-3">
+                <p className="text-xs font-semibold text-brand-blue-navy flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-teal-dark" />
+                  This activity will be added to:
+                </p>
+                <p className="text-sm font-bold text-brand-blue-navy mt-1">
+                  {selectedTrip?.name || 'Selected Trip'} → {selectedStopName}{selectedStopDate ? ` (${selectedStopDate})` : ''}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/trips/${selectedTripId}/itinerary`)}
+                    className="border-brand-teal-light text-brand-teal-dark hover:bg-brand-teal-dark hover:text-white"
+                  >
+                    View This Itinerary
+                  </Button>
+                </div>
+                {isCityMismatch && (
+                  <p className="text-[11px] text-amber-700 mt-1.5">
+                    Tip: This activity is in {selectedActivity?.city?.name}. You can switch to that city stop if available.
+                  </p>
                 )}
               </div>
             )}
@@ -571,6 +843,16 @@ export default function ActivitiesPage() {
                   className="w-full rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none"
                 />
               </div>
+
+              <label className="flex items-center gap-2 text-xs text-surface-600">
+                <input
+                  type="checkbox"
+                  checked={openItineraryAfterAdd}
+                  onChange={(e) => setOpenItineraryAfterAdd(e.target.checked)}
+                  className="rounded border-surface-300 text-brand-teal-dark focus:ring-brand-teal-medium"
+                />
+                Open itinerary page after adding
+              </label>
             </>
           )}
 
@@ -585,7 +867,7 @@ export default function ActivitiesPage() {
               disabled={!selectedStopId}
               className="bg-brand-teal-dark hover:bg-brand-teal-medium text-white px-6"
             >
-              Add Activity
+              {selectedStopId ? `Add to ${selectedStopName}` : 'Add Activity'}
             </Button>
           </div>
         </form>
