@@ -1,47 +1,72 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/database')
 
-const citySchema = new mongoose.Schema({
-  name:        { type: String, required: true, trim: true, index: true },
-  country:     { type: String, required: true, trim: true },
-  region:      { type: String, default: '', trim: true },
-  state:       { type: String, default: '', trim: true },
-  description: { type: String, default: '', maxlength: 1000 },
-  image:       { type: String, default: '' },
-  images:      [{ type: String }],
-
-  coordinates: {
-    lat: { type: Number },
-    lng: { type: Number },
+const City = sequelize.define('City', {
+  id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true,
   },
-
+  name: {
+    type:      DataTypes.STRING(100),
+    allowNull: false,
+  },
+  country: {
+    type:      DataTypes.STRING(100),
+    allowNull: false,
+  },
+  region: {
+    type:         DataTypes.STRING(100),
+    defaultValue: '',
+  },
+  state: {
+    type:         DataTypes.STRING(100),
+    defaultValue: '',
+  },
+  description: {
+    type:         DataTypes.TEXT,
+    defaultValue: '',
+  },
+  image: {
+    type:         DataTypes.STRING(500),
+    defaultValue: '',
+  },
+  images: {
+    type:         DataTypes.JSON,
+    defaultValue: [],
+  },
+  lat: {
+    type: DataTypes.FLOAT,
+  },
+  lng: {
+    type: DataTypes.FLOAT,
+  },
   costIndex: {
-    type: Number,
-    min:  1,
-    max:  5,
-    default: 3,
-    comment: '1=very cheap, 5=very expensive',
+    type:         DataTypes.INTEGER,
+    defaultValue: 3,
+    validate:     { min: 1, max: 5 },
   },
-
   popularity: {
-    type:    Number,
-    default: 0,
-    min:     0,
-    max:     100,
+    type:         DataTypes.INTEGER,
+    defaultValue: 0,
+    validate:     { min: 0, max: 100 },
   },
-
-  tags:        [{ type: String, trim: true }],
-  bestMonths:  [{ type: String }],
-
-  avgDailyCost: { type: Number, default: 0 },  // in INR
-
-  isActive: { type: Boolean, default: true },
-}, {
-  timestamps: true,
+  tags: {
+    type:         DataTypes.JSON,
+    defaultValue: [],
+  },
+  bestMonths: {
+    type:         DataTypes.JSON,
+    defaultValue: [],
+  },
+  avgDailyCost: {
+    type:         DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  isActive: {
+    type:         DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 })
 
-citySchema.index({ name: 'text', country: 'text', description: 'text' })
-citySchema.index({ country: 1 })
-citySchema.index({ popularity: -1 })
-citySchema.index({ costIndex: 1 })
-
-module.exports = mongoose.model('City', citySchema)
+module.exports = City

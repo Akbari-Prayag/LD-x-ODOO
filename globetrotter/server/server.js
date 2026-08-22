@@ -1,10 +1,12 @@
 require('dotenv').config()
-const express  = require('express')
-const mongoose = require('mongoose')
-const cors     = require('cors')
-const helmet   = require('helmet')
-const morgan   = require('morgan')
-const path     = require('path')
+const express = require('express')
+const cors    = require('cors')
+const helmet  = require('helmet')
+const morgan  = require('morgan')
+const path    = require('path')
+
+const { sequelize, ensureDatabaseExists } = require('./config/database')
+require('./models') // loads models & associations
 
 const authRoutes       = require('./routes/auth.routes')
 const userRoutes       = require('./routes/user.routes')
@@ -44,27 +46,37 @@ app.use('/api/admin',      adminRoutes)
 
 // ─── Health check ─────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+  res.json({ status: 'ok', database: 'mysql', timestamp: new Date().toISOString() })
 })
 
 // ─── Global error handler ─────────────────────────────────────
 app.use(errorHandler)
 
 // ─── Database + Start ────────────────────────────────────────
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser:    true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('✅ MongoDB connected')
+async function startServer() {
+  try {
+    // 1. Ensure database exists
+    await ensureDatabaseExists()
+
+    // 2. Authenticate Sequelize
+    await sequelize.authenticate()
+    console.log('✅ MySQL connected successfully')
+
+    // 3. Sync tables
+    await sequelize.sync({ alter: true })
+    console.log('✅ MySQL tables synchronized')
+
+    // 4. Start HTTP server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`)
     })
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err.message)
+  } catch (err) {
+    console.error('❌ MySQL connection error:', err.message)
+    console.error('👉 Please ensure MySQL service is running and check your .env credentials (DB_USER, DB_PASSWORD, DB_HOST, DB_NAME).')
     process.exit(1)
-  })
+  }
+}
+
+startServer()
 
 module.exports = app

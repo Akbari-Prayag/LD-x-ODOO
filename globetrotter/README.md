@@ -2,7 +2,7 @@
 
 > **Plan your perfect trip. Discover cities. Track your budget. Share your adventures.**
 
-A full-stack MERN travel planning application built for college hackathon / portfolio demonstration.
+A full-stack travel planning application built with React, Node.js, Express, and MySQL (Sequelize ORM).
 
 ---
 
@@ -10,39 +10,40 @@ A full-stack MERN travel planning application built for college hackathon / port
 
 ### Prerequisites
 - Node.js 18+
-- MongoDB (local) running on port 27017
+- MySQL Server (Local MySQL, XAMPP, Docker, or MySQL Workbench) running on port 3306
 
 ### Installation
 
 ```bash
 # 1. Clone
-git clone <your-repo-url>
-cd globetrotter
+git clone https://github.com/Akbari-Prayag/LD-x-ODOO.git
+cd LD-x-ODOO
 
-# 2. Backend
-cd server
+# 2. Backend Setup
+cd globetrotter/server
 npm install
-# .env is already configured for local dev
+cp .env.example .env
+# Edit .env with your MySQL credentials (DB_USER, DB_PASSWORD)
 
-# 3. Frontend
+# 3. Frontend Setup
 cd ../client
 npm install
 
-# 4. Seed database (important!)
+# 4. Seed Database (Creates tables & demo data in MySQL automatically)
 cd ../seed
 npm install
 node seed.js
 
 # 5. Run both servers
-# Terminal 1:
-cd server && npm run dev
+# Terminal 1: Backend
+cd ../server && npm run dev
 
-# Terminal 2:
-cd client && npm run dev
+# Terminal 2: Frontend
+cd ../client && npm run dev
 ```
 
-**App:** http://localhost:5173  
-**API:** http://localhost:5000
+**Frontend:** http://localhost:5173  
+**Backend API:** http://localhost:5000/api/health
 
 ### Demo Credentials
 | Role | Email | Password |
@@ -54,7 +55,7 @@ cd client && npm run dev
 
 ## ✨ Features
 
-- 🔐 **Authentication** – Register, Login, Forgot/Reset Password (JWT)
+- 🔐 **Authentication** – Register, Login, Forgot/Reset Password (JWT + bcrypt)
 - 🗺️ **Trip Management** – Create, Edit, Delete, Duplicate trips
 - 📍 **Itinerary Builder** – Drag-and-drop cities and activities
 - 🏙️ **City Discovery** – Search 20+ cities with filters
@@ -77,7 +78,7 @@ cd client && npm run dev
 | Charts | Recharts |
 | DnD | @dnd-kit |
 | Backend | Node.js, Express.js |
-| Database | MongoDB + Mongoose |
+| Database | MySQL (mysql2 + Sequelize ORM) |
 | Auth | JWT + bcrypt |
 
 ---
@@ -86,13 +87,16 @@ cd client && npm run dev
 
 ```
 globetrotter/
-├── client/         → React frontend
-├── server/         → Express backend  
-├── seed/           → Database seed data
-└── team_tasks.md   → Team assignments & navigation
+├── client/                   → React frontend
+├── server/                   → Express + MySQL backend  
+│   ├── config/database.js    → Sequelize connection pool
+│   ├── models/               → Sequelize models (User, Trip, City...)
+│   ├── controllers/          → Business logic
+│   └── routes/               → Express REST API routes
+├── seed/                     → MySQL seed script
+├── GIT_COLLABORATION_GUIDE.md→ Team git workflow
+└── team_tasks.md             → Team assignments & navigation
 ```
-
-See **[team_tasks.md](./team_tasks.md)** for full team guide.
 
 ---
 

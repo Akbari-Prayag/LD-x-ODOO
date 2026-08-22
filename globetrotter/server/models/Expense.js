@@ -1,50 +1,59 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/database')
 
-const expenseSchema = new mongoose.Schema({
-  trip: {
-    type:     mongoose.Schema.Types.ObjectId,
-    ref:      'Trip',
-    required: true,
-    index:    true,
+const Expense = sequelize.define('Expense', {
+  id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true,
   },
-  tripStop: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'TripStop',
+  tripId: {
+    type:      DataTypes.INTEGER,
+    allowNull: false,
   },
-  user: {
-    type:     mongoose.Schema.Types.ObjectId,
-    ref:      'User',
-    required: true,
+  tripStopId: {
+    type:      DataTypes.INTEGER,
+    allowNull: true,
+  },
+  userId: {
+    type:      DataTypes.INTEGER,
+    allowNull: false,
   },
   description: {
-    type:     String,
-    required: [true, 'Description is required'],
-    trim:     true,
-    maxlength: [200, 'Description too long'],
+    type:      DataTypes.STRING(200),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Description is required' },
+    },
   },
   amount: {
-    type:     Number,
-    required: [true, 'Amount is required'],
-    min:      [0.01, 'Amount must be positive'],
+    type:      DataTypes.FLOAT,
+    allowNull: false,
+    validate: {
+      min: { args: [0.01], msg: 'Amount must be greater than zero' },
+    },
   },
   category: {
-    type: String,
-    enum: ['transport', 'stay', 'activities', 'meals', 'other'],
-    required: true,
+    type:      DataTypes.ENUM('transport', 'stay', 'activities', 'meals', 'other'),
+    allowNull: false,
   },
   date: {
-    type:     Date,
-    required: true,
-    default:  Date.now,
+    type:         DataTypes.DATEONLY,
+    allowNull:    false,
+    defaultValue: DataTypes.NOW,
   },
-  currency: { type: String, default: 'INR' },
-  notes:    { type: String, default: '', maxlength: 300 },
-  receipt:  { type: String, default: '' },  // URL to uploaded receipt
-}, {
-  timestamps: true,
+  currency: {
+    type:         DataTypes.STRING(10),
+    defaultValue: 'INR',
+  },
+  notes: {
+    type:         DataTypes.TEXT,
+    defaultValue: '',
+  },
+  receipt: {
+    type:         DataTypes.STRING(500),
+    defaultValue: '',
+  },
 })
 
-expenseSchema.index({ trip: 1, date: -1 })
-expenseSchema.index({ trip: 1, category: 1 })
-
-module.exports = mongoose.model('Expense', expenseSchema)
+module.exports = Expense

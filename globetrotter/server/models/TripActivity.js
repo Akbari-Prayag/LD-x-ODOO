@@ -1,46 +1,59 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/database')
 
-// TripActivity links an activity to a specific TripStop with scheduling info
-const tripActivitySchema = new mongoose.Schema({
-  tripStop: {
-    type:     mongoose.Schema.Types.ObjectId,
-    ref:      'TripStop',
-    required: true,
-    index:    true,
+const TripActivity = sequelize.define('TripActivity', {
+  id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true,
   },
-  trip: {
-    type:     mongoose.Schema.Types.ObjectId,
-    ref:      'Trip',
-    required: true,
-    index:    true,
+  tripStopId: {
+    type:      DataTypes.INTEGER,
+    allowNull: false,
   },
-  activity: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'Activity',
+  tripId: {
+    type:      DataTypes.INTEGER,
+    allowNull: false,
   },
-
-  // For custom/manual activities not in the activity DB
-  customName:        { type: String, trim: true },
-  customDescription: { type: String, default: '' },
-  customCost:        { type: Number, default: 0 },
-
-  scheduledDate: { type: Date },
-  startTime:     { type: String, default: '' },  // e.g. '09:00'
-  endTime:       { type: String, default: '' },  // e.g. '11:30'
-
+  activityId: {
+    type:      DataTypes.INTEGER,
+    allowNull: true,
+  },
+  customName: {
+    type:         DataTypes.STRING(150),
+    defaultValue: '',
+  },
+  customDescription: {
+    type:         DataTypes.TEXT,
+    defaultValue: '',
+  },
+  customCost: {
+    type:         DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  scheduledDate: {
+    type: DataTypes.DATEONLY,
+  },
+  startTime: {
+    type:         DataTypes.STRING(20),
+    defaultValue: '',
+  },
+  endTime: {
+    type:         DataTypes.STRING(20),
+    defaultValue: '',
+  },
   status: {
-    type:    String,
-    enum:    ['planned', 'booked', 'completed', 'cancelled'],
-    default: 'planned',
+    type:         DataTypes.ENUM('planned', 'booked', 'completed', 'cancelled'),
+    defaultValue: 'planned',
   },
-
-  order: { type: Number, default: 0 },
-  notes: { type: String, default: '' },
-}, {
-  timestamps: true,
+  order: {
+    type:         DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  notes: {
+    type:         DataTypes.TEXT,
+    defaultValue: '',
+  },
 })
 
-tripActivitySchema.index({ tripStop: 1, order: 1 })
-tripActivitySchema.index({ trip: 1 })
-
-module.exports = mongoose.model('TripActivity', tripActivitySchema)
+module.exports = TripActivity

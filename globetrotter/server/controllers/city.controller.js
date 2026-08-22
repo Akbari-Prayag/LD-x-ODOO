@@ -1,8 +1,8 @@
-const City = require('../models/City')
+const { Op } = require('sequelize')
+const { City, Activity } = require('../models')
 
 /**
  * GET /api/cities
- * Supports: search, country, region, minCost, maxCost, sortBy, page, limit
  */
 exports.getCities = async (req, res, next) => {
   try {
@@ -12,38 +12,45 @@ exports.getCities = async (req, res, next) => {
       page = 1, limit = 20,
     } = req.query
 
-    const filter = { isActive: true }
+    const where = { isActive: true }
 
     if (search) {
-      filter.$or = [
-        { name:    { $regex: search, $options: 'i' } },
-        { country: { $regex: search, $options: 'i' } },
-        { region:  { $regex: search, $options: 'i' } },
+      where[Op.or] = [
+        { name:        { [Op.like]: `%${search}%` } },
+        { country:     { [Op.like]: `%${search}%` } },
+        { region:      { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } },
       ]
     }
-    if (country) filter.country = { $regex: country, $options: 'i' }
-    if (region)  filter.region  = { $regex: region,  $options: 'i' }
-    if (minCost) filter.costIndex = { ...filter.costIndex, $gte: Number(minCost) }
-    if (maxCost) filter.costIndex = { ...filter.costIndex, $lte: Number(maxCost) }
+    if (country) where.country = { [Op.like]: `%${country}%` }
+    if (region)  where.region  = { [Op.like]: `%${region}%` }
+    if (minCost || maxCost) {
+      where.costIndex = {}
+      if (minCost) where.costIndex[Op.gte] = Number(minCost)
+      if (maxCost) where.costIndex[Op.lte] = Number(maxCost)
+    }
 
     const sortMap = { popularity: 'popularity', name: 'name', cost: 'costIndex' }
     const sortField = sortMap[sortBy] || 'popularity'
-    const sortDir   = order === 'asc' ? 1 : -1
+    const sortDir   = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
 
-    const skip  = (Number(page) - 1) * Number(limit)
-    const total = await City.countDocuments(filter)
+    const pageNum  = Math.max(1, parseInt(page, 10))
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)))
+    const offset   = (pageNum - 1) * limitNum
 
-    const cities = await City.find(filter)
-      .sort({ [sortField]: sortDir })
-      .skip(skip)
-      .limit(Number(limit))
+    const { count, rows: cities } = await City.findAndCountAll({
+      where,
+      order:  [[sortField, sortDir]],
+      limit:  limitNum,
+      offset,
+    })
 
     res.json({
       success: true,
       cities,
-      total,
-      page:       Number(page),
-      totalPages: Math.ceil(total / Number(limit)),
+      total:      count,
+      page:       pageNum,
+      totalPages: Math.ceil(count / limitNum),
     })
   } catch (err) { next(err) }
 }
@@ -53,7 +60,9 @@ exports.getCities = async (req, res, next) => {
  */
 exports.getCity = async (req, res, next) => {
   try {
-    const city = await City.findById(req.params.id)
+    const city = await City.findByPk(req.params.id, {
+      include: [{ model: Activity, as: 'activities' }],
+    })
     if (!city) return res.status(404).json({ success: false, message: 'City not found' })
     res.json({ success: true, city })
   } catch (err) { next(err) }
@@ -64,9 +73,11 @@ exports.getCity = async (req, res, next) => {
  */
 exports.getPopularCities = async (req, res, next) => {
   try {
-    const cities = await City.find({ isActive: true })
-      .sort({ popularity: -1 })
-      .limit(12)
+    const cities = await City.findAll({
+      where: { isActive: true },
+      order: [['popularity', 'DESC']],
+      limit: 12,
+    })
     res.json({ success: true, cities })
   } catch (err) { next(err) }
 }

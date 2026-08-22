@@ -21,8 +21,9 @@ globetrotter/
 │       ├── routes/           ← React Router config
 │       └── utils/            ← cn(), dates, formatting, validation
 │
-├── server/                   ← Express + MongoDB backend
-│   ├── models/               ← Mongoose models
+├── server/                   ← Express + MySQL (Sequelize) backend
+│   ├── config/               ← Sequelize database connection
+│   ├── models/               ← Sequelize models & associations
 │   ├── controllers/          ← Business logic
 │   ├── routes/               ← API route definitions
 │   ├── middleware/           ← JWT auth, error handler
@@ -336,31 +337,31 @@ These are already scaffolded in `client/src/components/ui/`:
 
 ### Prerequisites
 - Node.js 18+
-- MongoDB running locally on port 27017
+- MySQL Server (Local MySQL, XAMPP, or Docker) running on port 3306
 - Git
 
 ### 1. Clone & install
 
 ```bash
 # Clone the repo
-git clone <repo-url>
-cd globetrotter
+git clone https://github.com/Akbari-Prayag/LD-x-ODOO.git
+cd LD-x-ODOO
 
 # Install server dependencies
-cd server && npm install
+cd globetrotter/server && npm install && cp .env.example .env
 
 # Install client dependencies
 cd ../client && npm install
 
-# Install seed dependencies (optional, for seeding)
+# Install seed dependencies
 cd ../seed && npm install
 ```
 
 ### 2. Setup environment
 
 ```bash
-# Server .env is already created at server/.env
-# Verify MONGO_URI points to your local MongoDB
+# Server .env is located at globetrotter/server/.env
+# Verify DB_HOST, DB_USER, DB_PASSWORD point to your MySQL server
 ```
 
 ### 3. Seed database (IMPORTANT – do this first!)
@@ -530,12 +531,12 @@ git push origin feature/raj-trips
 
 ## 🆘 Common Issues
 
-**MongoDB not connecting?**
+**MySQL not connecting?**
 ```bash
-# Start MongoDB service
-mongod --dbpath /data/db
-# Or on Windows:
-net start MongoDB
+# Ensure MySQL service is running
+# On Windows (Services):
+net start MySQL80
+# Or start MySQL from XAMPP Control Panel
 ```
 
 **Port already in use?**
@@ -553,8 +554,8 @@ cd client && npm install
 
 **API calls failing?**
 - Check server is running on port 5000
-- Check MongoDB is running
-- Check `.env` has correct `MONGO_URI`
+- Check MySQL service is running
+- Check `.env` has correct `DB_USER` and `DB_PASSWORD`
 
 ---
 
