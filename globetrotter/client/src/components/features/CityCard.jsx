@@ -5,20 +5,25 @@ import Button from '../ui/Button';
 export default function CityCard({ city, onAddToTrip }) {
   const { name, country, region, description, image, costIndex, popularity, bestMonths = [] } = city;
 
-  // Render cost indicator ($ signs)
-  const renderCost = () => {
-    return (
-      <div className="flex items-center text-brand-teal-dark font-medium">
-        {[...Array(5)].map((_, i) => (
-          <DollarSign
-            key={i}
-            className={`w-4 h-4 -mr-1.5 last:mr-0 ${
-              i < costIndex ? 'text-brand-teal-dark fill-current' : 'text-surface-300'
-            }`}
-          />
-        ))}
-      </div>
-    );
+  // Get dynamic local currency daily cost
+  const getFormattedCost = () => {
+    const avgDailyCost = city.avgDailyCost || (costIndex * 1500);
+    if (country === 'India') {
+      return `₹${avgDailyCost.toLocaleString('en-IN')}`;
+    }
+    if (country === 'France') {
+      const converted = Math.round(avgDailyCost * 0.011);
+      return `€${converted.toLocaleString('fr-FR')}`;
+    }
+    if (country === 'Japan') {
+      const converted = Math.round(avgDailyCost * 1.8);
+      return `¥${converted.toLocaleString('ja-JP')}`;
+    }
+    if (country === 'Indonesia') {
+      const converted = Math.round(avgDailyCost * 188);
+      return `Rp ${converted.toLocaleString('id-ID')}`;
+    }
+    return `₹${avgDailyCost.toLocaleString('en-IN')}`;
   };
 
   return (
@@ -65,9 +70,11 @@ export default function CityCard({ city, onAddToTrip }) {
         <div className="grid grid-cols-2 gap-3 mb-4 pt-3 border-t border-surface-100 text-xs">
           <div>
             <span className="text-[10px] text-surface-400 block uppercase tracking-wider font-semibold">
-              Cost Level
+              Est. Daily Cost
             </span>
-            <div className="mt-0.5">{renderCost()}</div>
+            <p className="mt-0.5 font-bold text-brand-teal-dark text-sm">
+              {getFormattedCost()}
+            </p>
           </div>
           {bestMonths.length > 0 && (
             <div>

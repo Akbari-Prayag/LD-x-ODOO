@@ -35,12 +35,23 @@ export default function ActivitiesPage() {
   const [status, setStatus] = useState('planned');
   const [notes, setNotes] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch activities and trips on load
   useEffect(() => {
     dispatch(fetchActivities(filters));
     dispatch(fetchTrips());
   }, [dispatch, filters]);
+
+  // Currency settings for dynamic price range slider
+  const currencySettings = {
+    'India': { symbol: '₹', max: 10000, step: 500, rate: 1 },
+    'France': { symbol: '€', max: 150, step: 5, rate: 0.011 },
+    'Japan': { symbol: '¥', max: 15000, step: 500, rate: 1.8 },
+    'Indonesia': { symbol: 'Rp', max: 1500000, step: 50000, rate: 188 }
+  };
+
+  const activeCurrency = currencySettings[filters.country] || currencySettings['India'];
 
   // Handle local state / mock fallbacks
   useEffect(() => {
@@ -58,6 +69,9 @@ export default function ActivitiesPage() {
       }
       if (filters.category) {
         filtered = filtered.filter(a => a.category === filters.category);
+      }
+      if (filters.country) {
+        filtered = filtered.filter(a => a.city?.country.toLowerCase() === filters.country.toLowerCase());
       }
       if (filters.maxCost) {
         filtered = filtered.filter(a => a.estimatedCost <= Number(filters.maxCost));
@@ -220,6 +234,8 @@ export default function ActivitiesPage() {
     { value: 'nightlife', label: '🍻 Nightlife' },
   ];
 
+  const countries = [...new Set(mockActivities.map(a => a.city?.country).filter(Boolean))];
+
   return (
     <div className="min-h-screen bg-surface-50">
       {/* Search Header Banner */}
@@ -250,6 +266,123 @@ export default function ActivitiesPage() {
                 <X className="w-4 h-4" />
               </button>
             )}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2 rounded-xl transition-all duration-150 flex items-center gap-1.5 ml-2 border ${
+                showFilters 
+                  ? 'bg-brand-teal-pale text-brand-teal-dark border-brand-teal-light/40 font-bold' 
+                  : 'bg-white text-surface-500 border-surface-200 hover:bg-surface-100 hover:text-surface-800'
+              }`}
+              title="Toggle Filters"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span className="text-xs font-semibold max-sm:hidden">Filters</span>
+            </button>
+
+            {/* Collapsible Dropdown Filter Card */}
+            {showFilters && (
+              <div className="absolute top-full left-0 right-0 sm:left-full sm:right-auto sm:top-0 sm:ml-4 mt-3 sm:mt-0 bg-white border border-surface-200 rounded-3xl shadow-card-xl p-6 z-50 text-left animate-slide-up w-[300px] sm:w-[320px] max-w-[90vw]">
+                {/* Left pointer triangle for desktop */}
+                <div className="hidden sm:block absolute right-full top-4 translate-x-[1px] w-0 h-0 border-y-[10px] border-y-transparent border-r-[10px] border-r-white z-10"></div>
+                <div className="hidden sm:block absolute right-full top-4 w-0 h-0 border-y-[10px] border-y-transparent border-r-[10px] border-r-surface-200"></div>
+                
+                <div className="flex items-center justify-between pb-3 border-b border-surface-100 mb-4">
+                  <span className="font-display font-bold text-sm text-brand-blue-navy flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-brand-teal-dark" /> Filter Options
+                  </span>
+                  {(filters.search || filters.category || filters.maxCost || filters.duration) && (
+                    <button
+                      onClick={handleResetFilters}
+                      className="text-xs text-brand-blue-medium hover:text-brand-blue-navy font-semibold transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  {/* Country Filter */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
+                      Country
+                    </label>
+                    <select
+                      value={filters.country}
+                      onChange={(e) => dispatch(setFilter({ country: e.target.value, maxCost: '' }))}
+                      className="w-full rounded-xl border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:border-brand-teal-medium focus:outline-none"
+                    >
+                      <option value="">All Countries</option>
+                      {countries.map(country => (
+                        <option key={country} value={country}>{country}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Max Cost Filter */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 flex justify-between">
+                      <span>Max Cost</span>
+                      <span className="text-brand-teal-dark font-bold">
+                        {filters.maxCost ? `${activeCurrency.symbol}${Math.round(Number(filters.maxCost) * activeCurrency.rate).toLocaleString()}` : 'Any'}
+                      </span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max={activeCurrency.max}
+                      step={activeCurrency.step}
+                      value={filters.maxCost ? Math.round(Number(filters.maxCost) * activeCurrency.rate) : activeCurrency.max}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val >= activeCurrency.max) {
+                          dispatch(setFilter({ maxCost: '' }));
+                        } else {
+                          const inrVal = Math.round(val / activeCurrency.rate);
+                          dispatch(setFilter({ maxCost: inrVal }));
+                        }
+                      }}
+                      className="w-full accent-brand-teal-dark h-1.5 bg-surface-100 rounded-lg cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-surface-400 mt-1">
+                      <span>Free</span>
+                      <span>{activeCurrency.symbol}{activeCurrency.max.toLocaleString()}+</span>
+                    </div>
+                  </div>
+
+                  {/* Duration Filter */}
+                  <div>
+                    <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 flex justify-between">
+                      <span>Max Duration</span>
+                      <span className="text-brand-teal-dark font-bold">
+                        {filters.duration ? `${filters.duration} hrs` : 'Any'}
+                      </span>
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="12"
+                      value={filters.duration || '12'}
+                      onChange={(e) => handleFilterSliderChange('duration', e.target.value)}
+                      className="w-full accent-brand-teal-dark h-1.5 bg-surface-100 rounded-lg cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-surface-400 mt-1">
+                      <span>1 hr</span>
+                      <span>12 hrs</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Apply Button */}
+                <div className="flex justify-end mt-4 pt-3 border-t border-surface-100">
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="px-4 py-1.5 bg-brand-teal-dark text-white rounded-xl text-xs font-bold hover:bg-brand-teal-medium transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -276,69 +409,6 @@ export default function ActivitiesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* Side Filters Panel */}
-          <aside className="w-full lg:w-64 flex-shrink-0 bg-white rounded-2xl border border-surface-100 p-6 shadow-sm h-fit">
-            <div className="flex items-center justify-between pb-4 border-b border-surface-100 mb-5">
-              <span className="font-display font-bold text-brand-blue-navy flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-brand-teal-dark" /> Filters
-              </span>
-              {(filters.search || filters.category || filters.maxCost || filters.duration) && (
-                <button
-                  onClick={handleResetFilters}
-                  className="text-xs text-brand-blue-medium hover:text-brand-blue-navy font-semibold transition-colors"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
-
-            {/* Max Cost Filter */}
-            <div className="mb-5">
-              <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 flex justify-between">
-                <span>Max Cost</span>
-                <span className="text-brand-teal-dark font-bold">
-                  {filters.maxCost ? `₹${filters.maxCost}` : 'Any'}
-                </span>
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                step="500"
-                value={filters.maxCost || '10000'}
-                onChange={(e) => handleFilterSliderChange('maxCost', e.target.value)}
-                className="w-full accent-brand-teal-dark h-1.5 bg-surface-100 rounded-lg cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-surface-400 mt-1">
-                <span>Free</span>
-                <span>₹10,000+</span>
-              </div>
-            </div>
-
-            {/* Duration Filter */}
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 flex justify-between">
-                <span>Max Duration</span>
-                <span className="text-brand-teal-dark font-bold">
-                  {filters.duration ? `${filters.duration} hrs` : 'Any'}
-                </span>
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="12"
-                value={filters.duration || '12'}
-                onChange={(e) => handleFilterSliderChange('duration', e.target.value)}
-                className="w-full accent-brand-teal-dark h-1.5 bg-surface-100 rounded-lg cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-surface-400 mt-1">
-                <span>1 hr</span>
-                <span>12 hrs</span>
-              </div>
-            </div>
-          </aside>
-
           {/* Right Main Grid */}
           <main className="flex-grow">
             {isLoading ? (
