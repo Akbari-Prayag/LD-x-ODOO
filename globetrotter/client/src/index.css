@@ -94,6 +94,8 @@
   .btn-danger    { @apply bg-danger-500 text-white hover:bg-danger-600 focus-visible:ring-danger-400; }
   .btn-ghost     { @apply text-surface-600 hover:bg-surface-100 hover:text-surface-900 focus-visible:ring-surface-300; }
   .btn-success   { @apply bg-success-500 text-white hover:bg-success-600 focus-visible:ring-success-400; }
+  .btn-sage      { @apply bg-sage-500 text-white hover:bg-sage-600 focus-visible:ring-sage-400 shadow-sm; }
+  .btn-ocean     { @apply bg-ocean-500 text-white hover:bg-ocean-600 focus-visible:ring-ocean-400 shadow-sm; }
 
   /* --- Input --- */
   .input {
@@ -125,6 +127,8 @@
   .badge-warning { @apply badge bg-warning-100 text-warning-700; }
   .badge-danger  { @apply badge bg-danger-100  text-danger-700; }
   .badge-gray    { @apply badge bg-surface-100 text-surface-600; }
+  .badge-sage    { @apply badge bg-sage-100 text-sage-800 border border-sage-200/60; }
+  .badge-ocean   { @apply badge bg-ocean-100 text-ocean-800 border border-ocean-200/60; }
 
   /* --- Sidebar --- */
   .sidebar {

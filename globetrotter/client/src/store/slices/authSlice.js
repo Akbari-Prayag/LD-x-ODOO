@@ -42,12 +42,20 @@ export const loadUserFromStorage = () => (dispatch) => {
   }
 }
 
+let initialToken = null
+let initialUser = null
+try {
+  initialToken = localStorage.getItem('token')
+  const userStr = localStorage.getItem('user')
+  if (userStr) initialUser = JSON.parse(userStr)
+} catch (e) {}
+
 // ─── Slice ───────────────────────────────────────────────────
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user:      null,
-    token:     null,
+    user:      initialUser,
+    token:     initialToken,
     isLoading: false,
     error:     null,
   },

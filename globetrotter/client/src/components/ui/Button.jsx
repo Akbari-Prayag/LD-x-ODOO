@@ -24,6 +24,8 @@ const Button = forwardRef(function Button(
     danger:    'btn-danger',
     ghost:     'btn-ghost',
     success:   'btn-success',
+    sage:      'btn-sage',
+    ocean:     'btn-ocean',
   }
   const sizeMap = {
     xs: 'btn-xs',

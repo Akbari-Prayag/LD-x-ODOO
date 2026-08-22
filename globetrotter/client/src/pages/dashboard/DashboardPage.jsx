@@ -1,18 +1,110 @@
-// TODO: Implemented by Prayag (Team Lead)
-// PHASE 3 – Dashboard
-// Shows: Welcome, Recent Trips, Plan New Trip CTA, Recommended Destinations, Budget Highlights
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { motion } from 'framer-motion'
+import { fetchTrips, selectAllTrips, selectTripsLoading, selectTripsError } from '../../store/slices/tripsSlice.js'
+import { selectCurrentUser } from '../../store/slices/authSlice.js'
+import api from '../../services/api.js'
+
+import JourneyMapHeader from './JourneyMapHeader.jsx'
+import StatsSection from './StatsSection.jsx'
+import NextTripCountdown from './NextTripCountdown.jsx'
+import RecentTrips from './RecentTrips.jsx'
+import BudgetHighlight from './BudgetHighlight.jsx'
+import RecommendedDestinations from './RecommendedDestinations.jsx'
+import CommandPalette from '../../components/ui/CommandPalette.jsx'
+
 export default function DashboardPage() {
+  const dispatch = useDispatch()
+  const user = useSelector(selectCurrentUser)
+  const trips = useSelector(selectAllTrips) || []
+  const tripsLoading = useSelector(selectTripsLoading)
+  const tripsError = useSelector(selectTripsError)
+
+  const [popularCities, setPopularCities] = useState([])
+  const [citiesLoading, setCitiesLoading] = useState(true)
+  const [citiesError, setCitiesError] = useState(null)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(null)
+
+  // Listen for custom open command palette event
+  useEffect(() => {
+    const handleOpen = () => setIsCommandPaletteOpen(true)
+    window.addEventListener('open-command-palette', handleOpen)
+    return () => window.removeEventListener('open-command-palette', handleOpen)
+  }, [])
+
+  // Fetch user trips
+  useEffect(() => {
+    dispatch(fetchTrips())
+  }, [dispatch])
+
+  // Fetch popular cities
+  const loadPopularCities = async () => {
+    try {
+      setCitiesLoading(true)
+      setCitiesError(null)
+      const { data } = await api.get('/cities/popular')
+      if (data.success && Array.isArray(data.cities)) {
+        setPopularCities(data.cities)
+      }
+    } catch (err) {
+      setCitiesError(err.response?.data?.message || 'Failed to load popular cities')
+    } finally {
+      setCitiesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadPopularCities()
+  }, [])
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-display font-bold text-surface-900">Welcome back! 👋</h2>
-          <p className="text-surface-500 mt-0.5 text-sm">Ready for your next adventure?</p>
-        </div>
-      </div>
-      <div className="text-center py-16 text-surface-400 text-sm">
-        🚧 Dashboard – to be implemented (Prayag)
-      </div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-8 pb-12 max-w-7xl mx-auto"
+    >
+      {/* 1. Animated World Journey Map Header */}
+      <JourneyMapHeader
+        user={user}
+        trips={trips}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+      />
+
+      {/* 2. Key Stats Grid with Count-up & Sparklines */}
+      <StatsSection trips={trips} loading={tripsLoading} />
+
+      {/* 3. Next Trip Live Countdown Hero Card */}
+      {trips.length > 0 && <NextTripCountdown trips={trips} />}
+
+      {/* 4. Snap-Scroll Trips Carousel */}
+      <RecentTrips
+        trips={trips}
+        loading={tripsLoading}
+        error={tripsError}
+        onRetry={() => dispatch(fetchTrips())}
+      />
+
+      {/* 5. Donut Chart Budget & Expense Breakdown */}
+      <BudgetHighlight
+        trips={trips}
+        onSelectCategory={(cat) => setSelectedCategory(cat)}
+      />
+
+      {/* 6. Swipeable Tinder-Style Recommended Destinations */}
+      <RecommendedDestinations
+        cities={popularCities}
+        loading={citiesLoading}
+        error={citiesError}
+        onRetry={loadPopularCities}
+      />
+
+      {/* Global Command Palette (⌘K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+      />
+    </motion.div>
   )
 }
