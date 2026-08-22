@@ -22,7 +22,7 @@ export default {
           900: '#312e81',
           950: '#1e1b4b',
         },
-        // Sage / Seafoam palette (Image 1)
+        // Sage / Seafoam palette
         sage: {
           50:  '#f4f8f5',
           100: '#e7efe6',
@@ -35,7 +35,7 @@ export default {
           800: '#2c4642',
           900: '#1f3330',
         },
-        // Ocean / Deep Blue palette (Image 2)
+        // Ocean / Deep Blue palette
         ocean: {
           50:  '#f0f8fb',
           100: '#d2e9ec',
@@ -61,7 +61,7 @@ export default {
           800: '#9a3412',
           900: '#7c2d12',
         },
-        // Sunset / Coral highlight (New)
+        // Sunset / Coral highlight
         sunset: {
           50:  '#fff8f5',
           100: '#ffede5',
