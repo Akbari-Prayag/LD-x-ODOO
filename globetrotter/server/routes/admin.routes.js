@@ -1,9 +1,7 @@
-const express  = require('express')
-const router   = express.Router()
-const User     = require('../models/User')
-const Trip     = require('../models/Trip')
-const City     = require('../models/City')
-const Activity = require('../models/Activity')
+const express = require('express')
+const router  = express.Router()
+const { Sequelize } = require('sequelize')
+const { User, Trip, City, Activity } = require('../models')
 const { protect, restrictTo } = require('../middleware/auth')
 
 router.use(protect, restrictTo('admin'))
@@ -14,24 +12,28 @@ router.use(protect, restrictTo('admin'))
 router.get('/stats', async (req, res, next) => {
   try {
     const [totalUsers, totalTrips, totalCities, totalActivities] = await Promise.all([
-      User.countDocuments({ isActive: true }),
-      Trip.countDocuments(),
-      City.countDocuments({ isActive: true }),
-      Activity.countDocuments({ isActive: true }),
+      User.count({ where: { isActive: true } }),
+      Trip.count(),
+      City.count({ where: { isActive: true } }),
+      Activity.count({ where: { isActive: true } }),
     ])
 
-    const recentTrips = await Trip.find()
-      .populate('owner', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(10)
+    const recentTrips = await Trip.findAll({
+      include: [{ model: User, as: 'owner', attributes: ['id', 'name', 'email'] }],
+      order:   [['createdAt', 'DESC']],
+      limit:   10,
+    })
 
-    const popularCities = await City.find({ isActive: true })
-      .sort({ popularity: -1 })
-      .limit(8)
+    const popularCities = await City.findAll({
+      where: { isActive: true },
+      order: [['popularity', 'DESC']],
+      limit: 8,
+    })
 
-    const tripsByStatus = await Trip.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } },
-    ])
+    const tripsByStatus = await Trip.findAll({
+      attributes: ['status', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
+      group:      ['status'],
+    })
 
     res.json({
       success: true,
@@ -48,7 +50,10 @@ router.get('/stats', async (req, res, next) => {
  */
 router.get('/users', async (req, res, next) => {
   try {
-    const users = await User.find().sort({ createdAt: -1 }).limit(50)
+    const users = await User.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: 50,
+    })
     res.json({ success: true, users: users.map(u => u.toSafeJSON()) })
   } catch (err) { next(err) }
 })

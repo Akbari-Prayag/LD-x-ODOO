@@ -1,33 +1,31 @@
 /**
- * Central error handler middleware.
- * Must be the last middleware registered in server.js.
+ * Central error handler middleware for Express & Sequelize.
  */
 exports.errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500
   let message    = err.message    || 'Internal Server Error'
 
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
+  // Sequelize validation error
+  if (err.name === 'SequelizeValidationError') {
     statusCode = 400
-    message    = Object.values(err.errors).map(e => e.message).join(', ')
+    message    = err.errors.map(e => e.message).join(', ')
   }
 
-  // Mongoose duplicate key
-  if (err.code === 11000) {
+  // Sequelize unique constraint error (e.g. duplicate email)
+  if (err.name === 'SequelizeUniqueConstraintError') {
     statusCode = 400
-    const field = Object.keys(err.keyValue)[0]
-    message    = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`
+    message    = err.errors.map(e => `${e.path} already exists`).join(', ')
   }
 
-  // Mongoose CastError (invalid ObjectId)
-  if (err.name === 'CastError') {
+  // Sequelize database error / foreign key violation
+  if (err.name === 'SequelizeForeignKeyConstraintError') {
     statusCode = 400
-    message    = `Invalid ${err.path}: ${err.value}`
+    message    = 'Referenced record does not exist'
   }
 
   // JWT errors
-  if (err.name === 'JsonWebTokenError')  { statusCode = 401; message = 'Invalid token'  }
-  if (err.name === 'TokenExpiredError')  { statusCode = 401; message = 'Token expired'  }
+  if (err.name === 'JsonWebTokenError')  { statusCode = 401; message = 'Invalid token' }
+  if (err.name === 'TokenExpiredError')  { statusCode = 401; message = 'Token expired' }
 
   if (process.env.NODE_ENV === 'development') {
     console.error('❌ Error:', err)

@@ -1,59 +1,68 @@
-const mongoose = require('mongoose')
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../config/database')
 
-const CATEGORIES = [
-  'sightseeing', 'food', 'adventure', 'culture',
-  'shopping',    'nature', 'entertainment', 'nightlife', 'other',
-]
-
-const activitySchema = new mongoose.Schema({
-  name:        { type: String, required: true, trim: true },
-  description: { type: String, default: '', maxlength: 1000 },
-  image:       { type: String, default: '' },
-  images:      [{ type: String }],
-
-  city: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'City',
-    index: true,
+const Activity = sequelize.define('Activity', {
+  id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true,
   },
-
+  name: {
+    type:      DataTypes.STRING(150),
+    allowNull: false,
+  },
+  description: {
+    type:         DataTypes.TEXT,
+    defaultValue: '',
+  },
+  image: {
+    type:         DataTypes.STRING(500),
+    defaultValue: '',
+  },
+  images: {
+    type:         DataTypes.JSON,
+    defaultValue: [],
+  },
+  cityId: {
+    type:      DataTypes.INTEGER,
+    allowNull: true,
+  },
   category: {
-    type:    String,
-    enum:    CATEGORIES,
-    default: 'other',
+    type:         DataTypes.ENUM('sightseeing', 'food', 'adventure', 'culture', 'shopping', 'nature', 'entertainment', 'nightlife', 'other'),
+    defaultValue: 'other',
   },
-
   estimatedCost: {
-    type: Number,
-    default: 0,
-    min:     0,
+    type:         DataTypes.FLOAT,
+    defaultValue: 0,
   },
-
-  duration: {
-    value: { type: Number, default: 1 },
-    unit:  { type: String, enum: ['minutes', 'hours', 'days'], default: 'hours' },
+  durationValue: {
+    type:         DataTypes.FLOAT,
+    defaultValue: 1,
   },
-
-  rating: {
-    average: { type: Number, default: 0, min: 0, max: 5 },
-    count:   { type: Number, default: 0 },
+  durationUnit: {
+    type:         DataTypes.ENUM('minutes', 'hours', 'days'),
+    defaultValue: 'hours',
   },
-
-  location: {
-    address: { type: String, default: '' },
-    lat:     { type: Number },
-    lng:     { type: Number },
+  ratingAverage: {
+    type:         DataTypes.FLOAT,
+    defaultValue: 0,
   },
-
-  tags:     [{ type: String }],
-  isActive: { type: Boolean, default: true },
-}, {
-  timestamps: true,
+  ratingCount: {
+    type:         DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  address: {
+    type:         DataTypes.STRING(255),
+    defaultValue: '',
+  },
+  tags: {
+    type:         DataTypes.JSON,
+    defaultValue: [],
+  },
+  isActive: {
+    type:         DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 })
 
-activitySchema.index({ name: 'text', description: 'text' })
-activitySchema.index({ city: 1, category: 1 })
-activitySchema.index({ category: 1 })
-activitySchema.index({ 'rating.average': -1 })
-
-module.exports = mongoose.model('Activity', activitySchema)
+module.exports = Activity

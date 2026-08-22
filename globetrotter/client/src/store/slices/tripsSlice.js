@@ -120,13 +120,13 @@ const tripsSlice = createSlice({
       // Update
       .addCase(updateTrip.fulfilled, (s, { payload }) => {
         s.currentTrip = payload
-        const idx = s.list.findIndex(t => t._id === payload._id)
+        const idx = s.list.findIndex(t => (t.id || t._id) === (payload.id || payload._id))
         if (idx !== -1) s.list[idx] = payload
       })
       // Delete
       .addCase(deleteTrip.fulfilled, (s, { payload: id }) => {
-        s.list = s.list.filter(t => t._id !== id)
-        if (s.currentTrip?._id === id) s.currentTrip = null
+        s.list = s.list.filter(t => (t.id || t._id) !== id)
+        if ((s.currentTrip?.id || s.currentTrip?._id) === id) s.currentTrip = null
       })
       // Duplicate
       .addCase(duplicateTrip.fulfilled, (s, { payload }) => {
@@ -135,7 +135,7 @@ const tripsSlice = createSlice({
       // Publish
       .addCase(publishTrip.fulfilled, (s, { payload }) => {
         s.currentTrip = payload
-        const idx = s.list.findIndex(t => t._id === payload._id)
+        const idx = s.list.findIndex(t => (t.id || t._id) === (payload.id || payload._id))
         if (idx !== -1) s.list[idx] = payload
       })
   },

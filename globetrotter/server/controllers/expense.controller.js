@@ -1,5 +1,4 @@
-const Expense = require('../models/Expense')
-const Trip    = require('../models/Trip')
+const { Expense, Trip } = require('../models')
 
 /**
  * GET /api/expenses/trip/:tripId
@@ -8,16 +7,17 @@ exports.getTripExpenses = async (req, res, next) => {
   try {
     const { tripId } = req.params
 
-    // Verify ownership
-    const trip = await Trip.findOne({ _id: tripId, owner: req.user._id })
+    const trip = await Trip.findOne({ where: { id: tripId, ownerId: req.user.id } })
     if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' })
 
-    const expenses = await Expense.find({ trip: tripId }).sort({ date: -1 })
+    const expenses = await Expense.findAll({
+      where: { tripId },
+      order: [['date', 'DESC']],
+    })
 
-    // Calculate summary
-    const total = expenses.reduce((sum, e) => sum + e.amount, 0)
+    const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0)
     const byCategory = expenses.reduce((acc, e) => {
-      acc[e.category] = (acc[e.category] || 0) + e.amount
+      acc[e.category] = (acc[e.category] || 0) + Number(e.amount)
       return acc
     }, {})
 
@@ -32,18 +32,18 @@ exports.createExpense = async (req, res, next) => {
   try {
     const { tripId, description, amount, category, date, notes, tripStopId } = req.body
 
-    const trip = await Trip.findOne({ _id: tripId, owner: req.user._id })
+    const trip = await Trip.findOne({ where: { id: tripId, ownerId: req.user.id } })
     if (!trip) return res.status(404).json({ success: false, message: 'Trip not found' })
 
     const expense = await Expense.create({
-      trip:        tripId,
-      tripStop:    tripStopId,
-      user:        req.user._id,
+      tripId,
+      tripStopId:  tripStopId || null,
+      userId:      req.user.id,
       description,
       amount:      Number(amount),
       category,
       date:        date || new Date(),
-      notes,
+      notes:       notes || '',
       currency:    trip.currency,
     })
 
@@ -60,17 +60,15 @@ exports.createExpense = async (req, res, next) => {
  */
 exports.updateExpense = async (req, res, next) => {
   try {
-    const expense = await Expense.findOne({ _id: req.params.id, user: req.user._id })
+    const expense = await Expense.findOne({ where: { id: req.params.id, userId: req.user.id } })
     if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' })
 
     const oldAmount = expense.amount
-    Object.assign(expense, req.body)
-    await expense.save()
+    await expense.update(req.body)
 
-    // Recalculate trip totalSpent
-    const trip = await Trip.findById(expense.trip)
+    const trip = await Trip.findByPk(expense.tripId)
     if (trip) {
-      trip.totalSpent = (trip.totalSpent || 0) - oldAmount + expense.amount
+      trip.totalSpent = (trip.totalSpent || 0) - oldAmount + Number(expense.amount)
       await trip.save()
     }
 
@@ -83,12 +81,16 @@ exports.updateExpense = async (req, res, next) => {
  */
 exports.deleteExpense = async (req, res, next) => {
   try {
-    const expense = await Expense.findOneAndDelete({ _id: req.params.id, user: req.user._id })
+    const expense = await Expense.findOne({ where: { id: req.params.id, userId: req.user.id } })
     if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' })
 
-    const trip = await Trip.findById(expense.trip)
+    const tripId = expense.tripId
+    const amount = expense.amount
+    await expense.destroy()
+
+    const trip = await Trip.findByPk(tripId)
     if (trip) {
-      trip.totalSpent = Math.max(0, (trip.totalSpent || 0) - expense.amount)
+      trip.totalSpent = Math.max(0, (trip.totalSpent || 0) - amount)
       await trip.save()
     }
 

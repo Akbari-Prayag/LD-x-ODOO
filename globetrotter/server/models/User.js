@@ -1,72 +1,88 @@
-const mongoose = require('mongoose')
-const bcrypt   = require('bcryptjs')
+const { DataTypes } = require('sequelize')
+const bcrypt = require('bcryptjs')
+const { sequelize } = require('../config/database')
 
-const userSchema = new mongoose.Schema({
+const User = sequelize.define('User', {
+  id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true,
+  },
   name: {
-    type:     String,
-    required: [true, 'Name is required'],
-    trim:     true,
-    maxlength: [50, 'Name cannot exceed 50 characters'],
+    type:      DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Name is required' },
+      len:      { args: [2, 50], msg: 'Name must be between 2 and 50 characters' },
+    },
   },
   email: {
-    type:      String,
-    required:  [true, 'Email is required'],
-    unique:    true,
-    lowercase: true,
-    trim:      true,
-    match:     [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+    type:      DataTypes.STRING(100),
+    allowNull: false,
+    unique:    { msg: 'Email is already registered' },
+    validate: {
+      isEmail: { msg: 'Must be a valid email address' },
+    },
   },
   password: {
-    type:      String,
-    required:  [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select:    false,  // Never return password in queries
+    type:      DataTypes.STRING(255),
+    allowNull: false,
+    validate: {
+      len: { args: [6, 255], msg: 'Password must be at least 6 characters' },
+    },
   },
   avatar: {
-    type:    String,
-    default: '',
+    type:         DataTypes.STRING(500),
+    defaultValue: '',
   },
   role: {
-    type:    String,
-    enum:    ['user', 'admin'],
-    default: 'user',
+    type:         DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user',
   },
-  preferences: {
-    currency: { type: String, default: 'INR' },
-    language: { type: String, default: 'en' },
+  currency: {
+    type:         DataTypes.STRING(10),
+    defaultValue: 'INR',
   },
-  savedDestinations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'City',
-  }],
-  passwordResetToken:   String,
-  passwordResetExpires: Date,
-  isActive: { type: Boolean, default: true },
+  language: {
+    type:         DataTypes.STRING(10),
+    defaultValue: 'en',
+  },
+  passwordResetToken: {
+    type: DataTypes.STRING(255),
+  },
+  passwordResetExpires: {
+    type: DataTypes.DATE,
+  },
+  isActive: {
+    type:         DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 }, {
-  timestamps: true,
+  hooks: {
+    beforeCreate: async (user) => {
+      if (user.password) {
+        user.password = await bcrypt.hash(user.password, 12)
+      }
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        user.password = await bcrypt.hash(user.password, 12)
+      }
+    },
+  },
 })
 
-// ─── Hooks ───────────────────────────────────────────────────
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next()
-  this.password = await bcrypt.hash(this.password, 12)
-  next()
-})
-
-// ─── Methods ─────────────────────────────────────────────────
-userSchema.methods.comparePassword = async function (candidatePassword) {
+// Instance methods
+User.prototype.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password)
 }
 
-userSchema.methods.toSafeJSON = function () {
-  const obj = this.toObject()
-  delete obj.password
-  delete obj.passwordResetToken
-  delete obj.passwordResetExpires
-  return obj
+User.prototype.toSafeJSON = function () {
+  const values = { ...this.get() }
+  delete values.password
+  delete values.passwordResetToken
+  delete values.passwordResetExpires
+  return values
 }
 
-// ─── Indexes ─────────────────────────────────────────────────
-userSchema.index({ email: 1 })
-
-module.exports = mongoose.model('User', userSchema)
+module.exports = User

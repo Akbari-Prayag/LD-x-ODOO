@@ -182,7 +182,7 @@ git push origin main
 ## 🧪 Quick Test: Running Frontend and Backend
 
 ```bash
-# Terminal 1: Backend (Express + MongoDB)
+# Terminal 1: Backend (Express + MySQL)
 cd globetrotter/server
 npm run dev
 

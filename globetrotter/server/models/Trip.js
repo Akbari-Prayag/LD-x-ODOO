@@ -1,93 +1,85 @@
-const mongoose = require('mongoose')
-const slugify  = require('slugify')
+const { DataTypes } = require('sequelize')
+const slugify = require('slugify')
 const { nanoid } = require('nanoid')
+const { sequelize } = require('../config/database')
 
-const tripSchema = new mongoose.Schema({
+const Trip = sequelize.define('Trip', {
+  id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true,
+  },
   name: {
-    type:     String,
-    required: [true, 'Trip name is required'],
-    trim:     true,
-    maxlength: [100, 'Name cannot exceed 100 characters'],
+    type:      DataTypes.STRING(100),
+    allowNull: false,
+    validate: {
+      notEmpty: { msg: 'Trip name is required' },
+      len:      { args: [2, 100], msg: 'Name must be between 2 and 100 characters' },
+    },
   },
   description: {
-    type:      String,
-    maxlength: [500, 'Description cannot exceed 500 characters'],
-    default:   '',
+    type:         DataTypes.TEXT,
+    defaultValue: '',
   },
-  coverPhoto: { type: String, default: '' },
-  startDate:  { type: Date, required: [true, 'Start date is required'] },
-  endDate:    { type: Date, required: [true, 'End date is required'] },
-  budget:     { type: Number, default: 0, min: [0, 'Budget cannot be negative'] },
-  currency:   { type: String, default: 'INR' },
-
+  coverPhoto: {
+    type:         DataTypes.STRING(500),
+    defaultValue: '',
+  },
+  startDate: {
+    type:      DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  endDate: {
+    type:      DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  budget: {
+    type:         DataTypes.FLOAT,
+    defaultValue: 0,
+    validate:     { min: 0 },
+  },
+  currency: {
+    type:         DataTypes.STRING(10),
+    defaultValue: 'INR',
+  },
   status: {
-    type:    String,
-    enum:    ['planning', 'upcoming', 'ongoing', 'completed'],
-    default: 'planning',
+    type:         DataTypes.ENUM('planning', 'upcoming', 'ongoing', 'completed'),
+    defaultValue: 'planning',
   },
-
-  isPublic:  { type: Boolean, default: false },
+  isPublic: {
+    type:         DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   publicSlug: {
-    type:   String,
+    type:   DataTypes.STRING(150),
     unique: true,
-    sparse: true,
   },
-
-  owner: {
-    type:     mongoose.Schema.Types.ObjectId,
-    ref:      'User',
-    required: true,
-    index:    true,
+  ownerId: {
+    type:      DataTypes.INTEGER,
+    allowNull: false,
   },
-
-  stops: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'TripStop',
-  }],
-
-  collaborators: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:  'User',
-  }],
-
-  totalSpent: { type: Number, default: 0 },
-
-  tags: [{ type: String, trim: true }],
+  totalSpent: {
+    type:         DataTypes.FLOAT,
+    defaultValue: 0,
+  },
+  tags: {
+    type:         DataTypes.JSON,
+    defaultValue: [],
+  },
 }, {
-  timestamps: true,
-  toJSON:     { virtuals: true },
-  toObject:   { virtuals: true },
+  hooks: {
+    beforeValidate: (trip) => {
+      if (trip.startDate && trip.endDate && trip.endDate < trip.startDate) {
+        throw new Error('End date cannot be before start date')
+      }
+    },
+    beforeSave: (trip) => {
+      if (trip.isPublic && !trip.publicSlug) {
+        const base = slugify(trip.name, { lower: true, strict: true })
+        trip.publicSlug = `${base}-${nanoid(6)}`
+      }
+    },
+  },
 })
 
-// ─── Virtuals ─────────────────────────────────────────────────
-tripSchema.virtual('duration').get(function () {
-  if (!this.startDate || !this.endDate) return 0
-  return Math.ceil((this.endDate - this.startDate) / (1000 * 60 * 60 * 24)) + 1
-})
-
-tripSchema.virtual('remainingBudget').get(function () {
-  return (this.budget || 0) - (this.totalSpent || 0)
-})
-
-// ─── Hooks ────────────────────────────────────────────────────
-tripSchema.pre('validate', function (next) {
-  if (this.endDate && this.startDate && this.endDate < this.startDate) {
-    this.invalidate('endDate', 'End date cannot be before start date')
-  }
-  next()
-})
-
-tripSchema.pre('save', function (next) {
-  if (this.isModified('isPublic') && this.isPublic && !this.publicSlug) {
-    const base = slugify(this.name, { lower: true, strict: true })
-    this.publicSlug = `${base}-${nanoid(6)}`
-  }
-  next()
-})
-
-// ─── Indexes ──────────────────────────────────────────────────
-tripSchema.index({ owner: 1, createdAt: -1 })
-tripSchema.index({ publicSlug: 1 })
-tripSchema.index({ status: 1 })
-
-module.exports = mongoose.model('Trip', tripSchema)
+module.exports = Trip
