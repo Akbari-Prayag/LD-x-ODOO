@@ -31,6 +31,7 @@ const ProfilePage    = lazy(() => import('../pages/profile/ProfilePage.jsx'))
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard.jsx'))
 
 // Public
+const HomePage = lazy(() => import('../pages/public/HomePage.jsx'))
 const PublicTripPage = lazy(() => import('../pages/public/PublicTripPage.jsx'))
 
 // ─── Guards ──────────────────────────────────────────────────
@@ -57,14 +58,15 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<LoadingPage />}>
       <Routes>
-        {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Public home */}
+        <Route path="/" element={<HomePage />} />
 
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
           <Route path="/login"          element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
           <Route path="/register"       element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
           <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         </Route>
 
@@ -92,7 +94,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* 404 fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   )

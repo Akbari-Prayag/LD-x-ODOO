@@ -1,85 +1,92 @@
 import { Outlet } from 'react-router-dom'
-import { ArrowUpRight, Compass, Globe, Map, Sparkles } from 'lucide-react'
+import { Globe, Plane } from 'lucide-react'
 
 export default function AuthLayout() {
   return (
-    <div className="h-screen overflow-hidden bg-[#d5e8e8] flex">
-      <div className="hidden lg:flex lg:w-[46%] xl:w-[48%] flex-col p-6 xl:p-8 relative overflow-hidden bg-[#2d3e86]">
-        <div className="absolute -right-28 top-24 w-80 h-80 rounded-full border-[52px] border-[#8fc9d8]/20" />
-        <div className="absolute -left-20 bottom-20 w-64 h-64 rounded-full border-[34px] border-[#d5e8e8]/10" />
-        <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] bg-[size:42px_42px]" />
+    <div className="min-h-screen bg-[#e8f4fb] p-2.5 md:p-4 lg:p-6">
+      <div className="mx-auto flex min-h-[calc(100vh-1.25rem)] max-w-[1400px] overflow-hidden rounded-[28px] border border-[#a4d8f6] bg-white shadow-[0_24px_80px_rgba(0,121,191,0.14)] md:min-h-[calc(100vh-2rem)] lg:min-h-[calc(100vh-3rem)]">
+        <aside className="relative hidden w-[48%] overflow-hidden lg:block">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, rgba(0,90,150,0.25) 0%, rgba(0,70,120,0.35) 100%), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1400&q=80')",
+            }}
+          />
 
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 bg-[#8fc9d8] rounded-2xl flex items-center justify-center rotate-3 shadow-lg shadow-[#16255b]/30">
-            <Globe className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-display font-bold tracking-tight text-white">GlobeTrotter</span>
-        </div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.35),transparent_35%)]" />
 
-        <div className="relative z-10 flex-1 flex flex-col justify-center py-5 xl:py-7">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#d5e8e8] mb-4 w-fit">
-            <Sparkles className="w-3.5 h-3.5 text-[#8fc9d8]" /> Plan beautifully
-          </div>
-          <h1 className="text-4xl xl:text-[3.25rem] font-display font-bold text-white leading-[1.03] mb-4 max-w-xl">
-            Make room for<br /><span className="text-[#8fc9d8]">the places</span> ahead.
-          </h1>
-          <p className="text-[#d5e8e8]/80 text-sm xl:text-base max-w-md leading-relaxed">
-            Build multi-city adventures with a clear plan, a thoughtful budget, and every detail close at hand.
-          </p>
-
-          <div className="grid grid-cols-3 gap-3 mt-6 max-w-lg">
-            {[['01', 'Map your route', Map], ['02', 'Track your spend', Compass], ['03', 'Share the story', ArrowUpRight]].map(([number, label, Icon]) => (
-              <div key={number} className="border-t border-white/25 pt-3">
-                <Icon className="w-4 h-4 text-[#8fc9d8] mb-3" />
-                <p className="text-[10px] uppercase tracking-widest text-[#8fc9d8]">{number}</p>
-                <p className="text-sm text-white mt-1">{label}</p>
+          <div className="relative z-10 flex h-full flex-col justify-between p-8 text-white xl:p-10">
+            <div>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/15 px-4 py-1.5 backdrop-blur">
+                <Globe className="h-4 w-4" />
+                <span className="text-sm font-semibold tracking-wide">Travelista Tours</span>
               </div>
-            ))}
+              <h1 className="max-w-md text-5xl font-display font-bold leading-[1.05]">
+                Discover your next journey.
+              </h1>
+              <p className="mt-4 max-w-md text-base text-white/90">
+                Travel is the only purchase that enriches you in ways beyond material wealth.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between text-sm text-white/85">
+              <span>Plan. Explore. Repeat.</span>
+              <span className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1">
+                Travel smart
+              </span>
+            </div>
+          </div>
+        </aside>
+
+        <section className="relative flex w-full items-center justify-center overflow-y-auto bg-[linear-gradient(180deg,#f8fdff_0%,#e8f6ff_100%)] px-4 py-8 sm:px-6 lg:w-[52%] lg:px-10">
+          <div className="absolute left-0 right-0 top-0 h-28 bg-[radial-gradient(circle_at_top,rgba(46,170,240,0.25),transparent_70%)]" />
+
+          <div className="pointer-events-none absolute right-4 top-4 hidden md:block" aria-hidden="true">
+            <Plane className="h-5 w-5 text-[#0aa4ea]" />
+            <svg viewBox="0 0 220 85" className="-mt-1 h-14 w-48 text-[#0aa4ea]/70" fill="none">
+              <path
+                d="M10 42C42 12 92 4 145 18C177 26 200 44 214 70"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeDasharray="4 7"
+              />
+            </svg>
           </div>
 
-          <div className="mt-6 max-w-lg rounded-2xl border border-white/15 bg-[#23346f]/80 p-3 backdrop-blur-sm shadow-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-[9px] uppercase tracking-[0.18em] text-[#8fc9d8]">A little further</p>
-                <p className="text-xs font-semibold text-white mt-1">Lisbon to Kyoto</p>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-12 md:block" aria-hidden="true">
+            <div className="mx-auto h-full w-[92%] max-w-3xl text-[#15a9ea]">
+              <svg viewBox="0 0 980 120" className="h-full w-full" preserveAspectRatio="none">
+                <path fill="currentColor" fillOpacity="0.14" d="M0 120V90h120v18h80V86h92v22h88V82h116v26h120V88h94v20h96V80h98v40z" />
+
+                <path fill="currentColor" d="M420 108h140V74H420z" />
+                <path fill="currentColor" d="M450 74h80c-4-26-21-42-40-42s-36 16-40 42z" fillOpacity="0.95" />
+                <path fill="currentColor" d="M486 24h8v8h-8z" />
+                <path fill="currentColor" d="M409 108h10V62h-10zm152 0h10V62h-10zm-20 0h8V70h-8zm-102 0h8V70h-8z" fillOpacity="0.9" />
+
+                <path fill="currentColor" d="M180 108h74V86h-74z" fillOpacity="0.9" />
+                <path fill="currentColor" d="M198 86h38c-2-13-9-21-19-21s-17 8-19 21z" fillOpacity="0.85" />
+
+                <path fill="currentColor" d="M690 108h78V88h-78z" fillOpacity="0.9" />
+                <path fill="currentColor" d="M716 88h26c-2-11-7-18-13-18s-11 7-13 18z" fillOpacity="0.85" />
+
+                <path fill="currentColor" d="M834 108h10V66h-10zm18 0h10V58h-10zm18 0h10V70h-10z" fillOpacity="0.75" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="relative w-full max-w-md rounded-[26px] border border-[#d4ecfa] bg-white p-5 shadow-[0_20px_50px_rgba(23,126,185,0.12)] sm:p-7">
+            <div className="mb-5 flex items-center gap-2.5 lg:hidden">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0aa4ea] text-white">
+                <Globe className="h-5 w-5" />
               </div>
-              <span className="rounded-full bg-[#8fc9d8]/15 px-2.5 py-1 text-[10px] text-[#bfe5ea]">12 days</span>
+              <span className="font-display text-lg font-semibold text-[#0b3f62]">Travelista Tours</span>
             </div>
-            <div className="relative h-14 overflow-hidden rounded-xl bg-[#1d2d62]">
-              <div className="absolute left-[13%] top-[55%] h-px w-[72%] rotate-[-10deg] bg-[#8fc9d8]/60" />
-              <div className="absolute left-[13%] top-[55%] h-2.5 w-2.5 rounded-full bg-[#8fc9d8] ring-4 ring-[#8fc9d8]/15" />
-              <div className="absolute left-[48%] top-[38%] h-2.5 w-2.5 rounded-full bg-[#d5e8e8] ring-4 ring-[#d5e8e8]/15" />
-              <div className="absolute right-[12%] top-[28%] h-2.5 w-2.5 rounded-full bg-[#8fc9d8] ring-4 ring-[#8fc9d8]/15" />
-              <div className="absolute left-[9%] bottom-2 text-[10px] text-[#d5e8e8]/70">Lisbon</div>
-              <div className="absolute right-[8%] top-2 text-[10px] text-[#d5e8e8]/70">Kyoto</div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-2.5 text-[11px]">
-              <div><p className="text-white font-semibold">3</p><p className="text-[#d5e8e8]/60 mt-0.5">cities</p></div>
-              <div><p className="text-white font-semibold">18</p><p className="text-[#d5e8e8]/60 mt-0.5">moments</p></div>
-              <div><p className="text-white font-semibold">$1.8k</p><p className="text-[#d5e8e8]/60 mt-0.5">planned</p></div>
-            </div>
-          </div>
-        </div>
 
-        <div className="relative z-10 flex items-center justify-between gap-4 border-t border-white/15 pt-3 pb-1">
-          <p className="text-[#d5e8e8]/75 text-xs">Your next chapter, organized.</p>
-          <span className="text-[10px] uppercase tracking-[0.16em] text-[#8fc9d8]">Travel, thoughtfully</span>
-        </div>
-      </div>
-
-      <div className="w-full lg:w-1/2 xl:w-[52%] h-full flex items-center justify-center p-4 md:p-6 bg-[#d5e8e8] overflow-y-auto">
-        <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-4 lg:hidden">
-            <div className="w-9 h-9 bg-[#2d3e86] rounded-xl flex items-center justify-center">
-              <Globe className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-display font-bold text-[#2d3e86]">GlobeTrotter</span>
-          </div>
-
-          <div className="bg-white rounded-[1.75rem] shadow-[0_24px_60px_rgba(45,62,134,0.16)] border border-white/70 p-5 md:p-7">
             <Outlet />
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

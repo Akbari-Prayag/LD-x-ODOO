@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, KeyRound, Mail, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,8 +9,9 @@ import { forgotPasswordSchema } from '../../utils/validationSchemas.js'
 import api from '../../services/api.js'
 
 export default function ForgotPasswordPage() {
+  const navigate = useNavigate()
   const [submitted, setSubmitted] = useState(false)
-  const [resetUrl, setResetUrl] = useState('')
+  const [devOtp, setDevOtp] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -30,11 +31,11 @@ export default function ForgotPasswordPage() {
     try {
       const { data } = await api.post('/auth/forgot-password', values)
       setSubmitted(true)
-      if (data.resetURL) {
-        setResetUrl(data.resetURL)
+      if (data.devOtp) {
+        setDevOtp(data.devOtp)
       }
     } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Failed to request reset link. Please try again.')
+      setErrorMessage(err.response?.data?.message || 'Failed to send OTP. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -48,35 +49,38 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-display font-bold text-[#2d3e86]">Check your email</h2>
+          <h2 className="text-2xl font-display font-bold text-[#2d3e86]">Check your OTP</h2>
           <p className="text-surface-600 mt-2 text-sm max-w-sm mx-auto">
-            We've sent a password reset link to <strong className="text-surface-900">{getValues('email')}</strong> if an account exists.
+            We have sent a 6-digit OTP to <strong className="text-surface-900">{getValues('email')}</strong> if an account exists.
           </p>
         </div>
 
-        {resetUrl && (
+        {devOtp && (
           <div className="p-3.5 bg-surface-50 border border-surface-200 rounded-xl text-left text-xs space-y-1.5">
             <div className="flex items-center gap-1.5 font-semibold text-primary-700">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Development Quick Link:</span>
+              <span>Development OTP:</span>
             </div>
-            <a
-              href={resetUrl}
-              className="text-[#4677d9] hover:text-[#2d3e86] font-mono break-all underline"
-            >
-              {resetUrl}
-            </a>
+            <p className="text-[#4677d9] font-mono text-base tracking-[0.25em]">{devOtp}</p>
           </div>
         )}
 
         <div className="space-y-3 pt-2">
           <Button
             type="button"
+            className="w-full !bg-[#4677d9] hover:!bg-[#2d3e86] !rounded-xl"
+            onClick={() => navigate('/reset-password', { state: { email: getValues('email') } })}
+          >
+            Verify OTP and Reset Password
+          </Button>
+
+          <Button
+            type="button"
             variant="outline"
             className="w-full !rounded-xl"
             onClick={() => {
               setSubmitted(false)
-              setResetUrl('')
+              setDevOtp('')
             }}
           >
             Try another email
@@ -133,7 +137,7 @@ export default function ForgotPasswordPage() {
           loading={isLoading}
           leftIcon={<KeyRound className="w-4 h-4" />}
         >
-          Send reset link
+          Send OTP
         </Button>
       </form>
 
