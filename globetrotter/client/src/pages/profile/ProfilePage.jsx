@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Shield, ArrowLeft } from 'lucide-react'
+import { ArrowLeft, User, Shield, Lock, Settings, Bookmark, AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { selectCurrentUser, updateProfile } from '../../store/slices/authSlice.js'
-import api from '../../services/api.js'
+import { selectCurrentUser } from '../../store/slices/authSlice.js'
 
 import ProfileSidebar from './ProfileSidebar.jsx'
 import ProfileInfo from './ProfileInfo.jsx'
@@ -15,24 +14,23 @@ import DangerZone from './DangerZone.jsx'
 import LiveProfilePreviewCard from './LiveProfilePreviewCard.jsx'
 
 export default function ProfilePage() {
-  const dispatch = useDispatch()
   const user = useSelector(selectCurrentUser)
   const [activeTab, setActiveTab] = useState('info')
   const [liveFormData, setLiveFormData] = useState({
-    name: user?.name,
-    avatar: user?.avatar,
-    currency: user?.currency,
-    language: user?.language,
+    name: user?.name || '',
+    avatar: user?.avatar || '',
+    currency: user?.currency || 'INR',
+    language: user?.language || 'en',
   })
 
   // Synchronize live preview on initial load or user change
   useEffect(() => {
     if (user) {
       setLiveFormData({
-        name: user.name,
-        avatar: user.avatar,
-        currency: user.currency,
-        language: user.language,
+        name: user.name || '',
+        avatar: user.avatar || '',
+        currency: user.currency || 'INR',
+        language: user.language || 'en',
       })
     }
   }, [user])
@@ -42,127 +40,129 @@ export default function ProfilePage() {
   }
 
   const handleProfileUpdated = (updatedUser) => {
-    setLiveFormData({
-      name: updatedUser.name,
-      avatar: updatedUser.avatar,
-      currency: updatedUser.currency,
-      language: updatedUser.language,
-    })
+    if (updatedUser) {
+      setLiveFormData({
+        name: updatedUser.name || '',
+        avatar: updatedUser.avatar || '',
+        currency: updatedUser.currency || 'INR',
+        language: updatedUser.language || 'en',
+      })
+    }
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-8 pb-12 max-w-7xl mx-auto"
-    >
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-200 dark:border-surface-800 pb-6">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-ocean-600 dark:text-ocean-400 mb-1">
-            <Link to="/dashboard" className="hover:underline flex items-center gap-1">
+    <div className="min-h-screen bg-[#0c1222] text-[#f0f8fb] font-sans pb-16 pt-2">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8"
+      >
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+          <div className="space-y-1">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#89c7e2] hover:text-white transition-colors"
+            >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Dashboard</span>
             </Link>
+            <h1 className="text-3xl font-display font-bold text-white tracking-tight">
+              Account & Settings
+            </h1>
+            <p className="text-xs sm:text-sm text-[#d2e9ec]/70 font-light">
+              Manage your personal details, credentials, preferences, and saved destinations.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-white">
-            Account & Settings
-          </h1>
-          <p className="text-xs sm:text-sm text-surface-500 mt-0.5">
-            Manage your personal profile, security credentials, preferences, and saved destinations
-          </p>
-        </div>
-      </div>
-
-      {/* 3-Column Layout: Sidebar Navigation | Active Panel | Sticky Live Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-        {/* Column 1: Vertical Tabs Navigation */}
-        <div className="lg:col-span-3">
-          <ProfileSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
 
-        {/* Column 2: Active Tab Panel with AnimatePresence */}
-        <div className="lg:col-span-5">
-          <AnimatePresence mode="wait">
-            {activeTab === 'info' && (
-              <motion.div
-                key="info"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ProfileInfo
-                  user={user}
-                  onProfileUpdated={handleProfileUpdated}
-                  onLiveChange={handleLiveChange}
-                />
-              </motion.div>
-            )}
+        {/* 3-Column Layout: Sidebar Navigation | Active Panel | Sticky Live Preview */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* Column 1: Vertical Tabs Navigation (3 cols) */}
+          <div className="lg:col-span-3">
+            <ProfileSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
 
-            {activeTab === 'security' && (
-              <motion.div
-                key="security"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.2 }}
-              >
-                <SecuritySettings />
-              </motion.div>
-            )}
+          {/* Column 2: Active Tab Panel (5 cols) */}
+          <div className="lg:col-span-5">
+            <AnimatePresence mode="wait">
+              {activeTab === 'info' && (
+                <motion.div
+                  key="info"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ProfileInfo
+                    user={user}
+                    onProfileUpdated={handleProfileUpdated}
+                    onLiveChange={handleLiveChange}
+                  />
+                </motion.div>
+              )}
 
-            {activeTab === 'preferences' && (
-              <motion.div
-                key="preferences"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Preferences
-                  user={user}
-                  onPreferencesUpdated={handleProfileUpdated}
-                  onLiveChange={handleLiveChange}
-                />
-              </motion.div>
-            )}
+              {activeTab === 'security' && (
+                <motion.div
+                  key="security"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <SecuritySettings />
+                </motion.div>
+              )}
 
-            {activeTab === 'saved' && (
-              <motion.div
-                key="saved"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.2 }}
-              >
-                <SavedDestinations user={user} />
-              </motion.div>
-            )}
+              {activeTab === 'preferences' && (
+                <motion.div
+                  key="preferences"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Preferences
+                    user={user}
+                    onPreferencesUpdated={handleProfileUpdated}
+                    onLiveChange={handleLiveChange}
+                  />
+                </motion.div>
+              )}
 
-            {activeTab === 'danger' && (
-              <motion.div
-                key="danger"
-                initial={{ opacity: 0, x: 15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.2 }}
-              >
-                <DangerZone />
-              </motion.div>
-            )}
-          </AnimatePresence>
+              {activeTab === 'saved' && (
+                <motion.div
+                  key="saved"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <SavedDestinations user={user} />
+                </motion.div>
+              )}
+
+              {activeTab === 'danger' && (
+                <motion.div
+                  key="danger"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <DangerZone />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Column 3: Sticky Live Profile Preview Card (4 cols) */}
+          <div className="hidden lg:block lg:col-span-4">
+            <LiveProfilePreviewCard formData={liveFormData} user={user} />
+          </div>
         </div>
-
-        {/* Column 3: Sticky Live Profile Preview Card */}
-        <div className="hidden lg:block lg:col-span-4">
-          <LiveProfilePreviewCard
-            formData={liveFormData}
-            user={user}
-          />
-        </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }

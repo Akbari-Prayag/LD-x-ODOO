@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Globe, DollarSign, Bell, Save, Sparkles, Check } from 'lucide-react'
+import { Globe, DollarSign, Bell, Save, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { updateProfile } from '../../store/slices/authSlice.js'
-import Button from '../../components/ui/Button.jsx'
 
 const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee (INR)', rate: 1 },
@@ -27,12 +26,11 @@ const LANGUAGES = [
 
 export default function Preferences({ user, onPreferencesUpdated, onLiveChange }) {
   const dispatch = useDispatch()
-  const currentCurrency = user?.currency || user?.preferences?.currency || 'INR'
-  const currentLanguage = user?.language || user?.preferences?.language || 'en'
+  const currentCurrency = user?.currency || 'INR'
+  const currentLanguage = user?.language || 'en'
 
   const [currency, setCurrency] = useState(currentCurrency)
   const [language, setLanguage] = useState(currentLanguage)
-  const [notifications, setNotifications] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
   const handleCurrencyChange = (val) => {
@@ -57,10 +55,6 @@ export default function Preferences({ user, onPreferencesUpdated, onLiveChange }
         updateProfile({
           currency,
           language,
-          preferences: {
-            currency,
-            language,
-          },
         })
       ).unwrap()
 
@@ -74,43 +68,41 @@ export default function Preferences({ user, onPreferencesUpdated, onLiveChange }
   }
 
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-surface-900 border border-surface-200/90 dark:border-surface-800 shadow-soft space-y-7">
-      <div className="border-b border-surface-100 dark:border-surface-800 pb-4">
-        <h3 className="text-xl font-display font-bold text-surface-900 dark:text-white">
-          Preferences & Localization
-        </h3>
-        <p className="text-xs text-surface-500 mt-0.5">
-          Customize currency formatting, language selection, and trip notifications
+    <div className="p-6 sm:p-7 rounded-2xl bg-[#16255b]/30 border border-white/10 shadow-xl backdrop-blur-sm space-y-6">
+      <div className="border-b border-white/10 pb-4">
+        <h3 className="text-xl font-display font-bold text-white">Preferences & Localization</h3>
+        <p className="text-xs text-[#d2e9ec]/70 font-light mt-0.5">
+          Customize currency formatting and language across your itineraries.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-lg">
         {/* Currency selection */}
         <div className="space-y-2">
-          <label htmlFor="pref-currency" className="input-label flex items-center gap-1.5">
-            <DollarSign className="w-4 h-4 text-ocean-600" />
-            <span>Preferred Display Currency</span>
+          <label htmlFor="pref-currency" className="text-xs font-semibold text-[#89c7e2] flex items-center gap-1.5">
+            <DollarSign className="w-3.5 h-3.5 text-[#3b72de]" />
+            <span>Default Currency</span>
           </label>
           <select
             id="pref-currency"
             value={currency}
             onChange={(e) => handleCurrencyChange(e.target.value)}
-            className="input"
+            className="w-full bg-[#0c1222]/70 border border-white/10 focus:border-[#3b72de] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
           >
             {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
+              <option key={c.code} value={c.code} className="bg-[#0c1222] text-white">
                 {c.symbol} — {c.name}
               </option>
             ))}
           </select>
 
           {/* Live Converted Sample Preview */}
-          <div className="p-3 rounded-2xl bg-ocean-50/50 dark:bg-ocean-950/30 border border-ocean-200/60 dark:border-ocean-800/40 flex items-center justify-between text-xs">
-            <span className="text-ocean-700 dark:text-ocean-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-ocean-500" />
-              <span>Live Sample Rate:</span>
+          <div className="p-3 rounded-xl bg-[#0c1222]/50 border border-white/10 flex items-center justify-between text-xs font-mono">
+            <span className="text-[#89c7e2] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#3b72de]" />
+              <span>Sample Rate:</span>
             </span>
-            <span className="font-bold text-ocean-900 dark:text-white font-mono">
+            <span className="font-bold text-white">
               ₹1,000 INR ≈ {selectedCurrObj.symbol} {sampleConverted} {currency}
             </span>
           </div>
@@ -118,64 +110,58 @@ export default function Preferences({ user, onPreferencesUpdated, onLiveChange }
 
         {/* Language selection */}
         <div className="space-y-1.5">
-          <label htmlFor="pref-lang" className="input-label flex items-center gap-1.5">
-            <Globe className="w-4 h-4 text-sage-600" />
+          <label htmlFor="pref-lang" className="text-xs font-semibold text-[#89c7e2] flex items-center gap-1.5">
+            <Globe className="w-3.5 h-3.5 text-slate-400" />
             <span>Application Language</span>
           </label>
           <select
             id="pref-lang"
             value={language}
             onChange={(e) => handleLanguageChange(e.target.value)}
-            className="input"
+            className="w-full bg-[#0c1222]/70 border border-white/10 focus:border-[#3b72de] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none transition-colors"
           >
             {LANGUAGES.map((l) => (
-              <option key={l.code} value={l.code}>
+              <option key={l.code} value={l.code} className="bg-[#0c1222] text-white">
                 {l.name}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Notifications toggle */}
-        <div className="pt-3 border-t border-surface-100 dark:border-surface-800">
+        {/* Notifications (Accurately Labeled) */}
+        <div className="pt-3 border-t border-white/10">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <p className="text-sm font-semibold text-surface-800 dark:text-surface-200 flex items-center gap-1.5">
-                <Bell className="w-4 h-4 text-sunset-500" />
-                <span>Trip Notifications & Reminders</span>
-              </p>
-              <p className="text-xs text-surface-500">
-                Receive important email updates about upcoming itineraries and budget alerts.
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-white flex items-center gap-1.5">
+                  <Bell className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Trip Notifications & Reminders</span>
+                </p>
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-mono text-slate-400">
+                  Beta
+                </span>
+              </div>
+              <p className="text-xs text-[#d2e9ec]/60 font-light">
+                Email updates for upcoming trip milestones and budget warnings.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setNotifications(!notifications)}
-              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-                notifications ? 'bg-ocean-600' : 'bg-surface-300'
-              }`}
-            >
-              <div
-                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                  notifications ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
+            <div className="w-10 h-5 flex items-center rounded-full p-0.5 bg-[#3b72de]">
+              <div className="bg-white w-4 h-4 rounded-full shadow-md ml-auto" />
+            </div>
           </div>
         </div>
 
         {/* Submit */}
         <div className="pt-2">
-          <Button
+          <button
             type="submit"
-            variant="ocean"
-            loading={isSaving}
-            leftIcon={<Save className="w-4 h-4" />}
-            className="rounded-2xl shadow-md"
+            disabled={isSaving}
+            className="px-6 py-2.5 rounded-xl bg-[#3b72de] hover:bg-[#2c5ec6] text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-[#3b72de]/20 disabled:opacity-50 flex items-center gap-2"
           >
-            Save Preferences
-          </Button>
+            <Save className="w-3.5 h-3.5" />
+            <span>{isSaving ? 'Saving...' : 'Save Preferences'}</span>
+          </button>
         </div>
       </form>
     </div>
