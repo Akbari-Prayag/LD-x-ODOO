@@ -22,6 +22,32 @@ export default {
           900: '#312e81',
           950: '#1e1b4b',
         },
+        // Sage / Seafoam palette (Image 1)
+        sage: {
+          50:  '#f4f8f5',
+          100: '#e7efe6',
+          200: '#cde2d7',
+          300: '#a5d2c1',
+          400: '#79b4a9',
+          500: '#5b8a83',
+          600: '#48736d',
+          700: '#395c57',
+          800: '#2c4642',
+          900: '#1f3330',
+        },
+        // Ocean / Deep Blue palette (Image 2)
+        ocean: {
+          50:  '#f0f8fb',
+          100: '#d2e9ec',
+          200: '#a9d8e5',
+          300: '#89c7e2',
+          400: '#5c9fdf',
+          500: '#3b72de',
+          600: '#2c5ec6',
+          700: '#223883',
+          800: '#1b2c68',
+          900: '#131f4a',
+        },
         // Accent / CTA
         accent: {
           50:  '#fff7ed',
@@ -39,24 +65,40 @@ export default {
         success: {
           50:  '#f0fdf4',
           100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
           500: '#22c55e',
           600: '#16a34a',
           700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
         },
         // Warning
         warning: {
           50:  '#fffbeb',
           100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
           500: '#f59e0b',
           600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
         },
         // Danger
         danger: {
           50:  '#fff1f2',
           100: '#ffe4e6',
+          200: '#fecdd3',
+          300: '#fda4af',
+          400: '#fb7185',
           500: '#ef4444',
           600: '#dc2626',
           700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
         },
         // Neutrals (sidebar bg, card bg, etc.)
         surface: {

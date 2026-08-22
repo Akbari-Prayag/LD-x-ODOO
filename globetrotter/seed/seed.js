@@ -1,4 +1,5 @@
-require('dotenv').config({ path: '../server/.env' })
+const path = require('path')
+require('dotenv').config({ path: path.join(__dirname, '../server/.env') })
 const { sequelize, ensureDatabaseExists } = require('../server/config/database')
 const { User, City, Activity, Trip, TripStop, TripActivity, Expense } = require('../server/models')
 

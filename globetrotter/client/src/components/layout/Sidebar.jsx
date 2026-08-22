@@ -8,6 +8,7 @@ import {
 import {
   toggleSidebarCollapse,
   toggleMobileMenu,
+  setMobileMenu,
   selectSidebarCollapsed,
   selectMobileMenu,
 } from '../../store/slices/uiSlice.js'
@@ -169,9 +170,4 @@ export default function Sidebar() {
       </aside>
     </>
   )
-}
-
-// import fix for setMobileMenu used in NavLink onClick
-function setMobileMenu(val) {
-  return { type: 'ui/setMobileMenu', payload: val }
 }

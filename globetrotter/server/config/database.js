@@ -1,6 +1,7 @@
+const path = require('path')
+require('dotenv').config({ path: path.join(__dirname, '../.env') })
 const { Sequelize } = require('sequelize')
 const mysql = require('mysql2/promise')
-require('dotenv').config()
 
 const DB_HOST     = process.env.DB_HOST     || 'localhost'
 const DB_PORT     = parseInt(process.env.DB_PORT, 10) || 3306

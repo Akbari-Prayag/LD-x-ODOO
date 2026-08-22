@@ -22,13 +22,13 @@ router.get('/profile', async (req, res, next) => {
  */
 router.put('/profile', async (req, res, next) => {
   try {
-    const { name, avatar, currency, language } = req.body
+    const { name, avatar, currency, language, preferences } = req.body
     const user = await User.findByPk(req.user.id)
 
-    if (name)     user.name     = name
-    if (avatar)   user.avatar   = avatar
-    if (currency) user.currency = currency
-    if (language) user.language = language
+    if (name) user.name = name
+    if (avatar !== undefined) user.avatar = avatar
+    if (currency || preferences?.currency) user.currency = currency || preferences.currency
+    if (language || preferences?.language) user.language = language || preferences.language
 
     await user.save()
     res.json({ success: true, user: user.toSafeJSON() })
