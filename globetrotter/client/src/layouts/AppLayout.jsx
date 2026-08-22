@@ -1,22 +1,35 @@
+import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import Sidebar     from '../components/layout/Sidebar.jsx'
 import Navbar      from '../components/layout/Navbar.jsx'
 import BottomNav   from '../components/layout/BottomNav.jsx'
 import MobileOverlay from '../components/layout/MobileOverlay.jsx'
+import CommandPalette from '../components/ui/CommandPalette.jsx'
 import {
-  selectSidebarOpen,
   selectSidebarCollapsed,
   selectMobileMenu,
 } from '../store/slices/uiSlice.js'
 
 export default function AppLayout() {
-  const sidebarOpen      = useSelector(selectSidebarOpen)
   const sidebarCollapsed = useSelector(selectSidebarCollapsed)
   const mobileMenuOpen   = useSelector(selectMobileMenu)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+
+  useEffect(() => {
+    const handleOpenPalette = () => setCommandPaletteOpen(true)
+    window.addEventListener('open-command-palette', handleOpenPalette)
+    return () => window.removeEventListener('open-command-palette', handleOpenPalette)
+  }, [])
 
   return (
     <div className="min-h-screen bg-surface-50">
+      {/* Global Command Palette (Ctrl+K) */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+      />
+
       {/* Sidebar */}
       <Sidebar />
 
@@ -27,7 +40,7 @@ export default function AppLayout() {
       <div
         className={[
           'min-h-screen transition-all duration-300',
-          'pt-16',                                    // navbar height
+          'pt-20',                                    // navbar height
           sidebarCollapsed
             ? 'md:pl-[72px]'
             : 'md:pl-[260px]',
