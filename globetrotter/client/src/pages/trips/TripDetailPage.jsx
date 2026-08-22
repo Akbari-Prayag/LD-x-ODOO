@@ -13,7 +13,7 @@ import {
   Trash2,
   Layers,
   CalendarDays,
-  DollarSign,
+  IndianRupee,
   Globe,
   Lock,
   Plus,
@@ -359,7 +359,7 @@ export default function TripDetailPage() {
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-surface-100 pb-3">
             <h2 className="font-display font-semibold text-surface-900 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-primary-600" />
+              <IndianRupee className="w-4 h-4 text-primary-600" />
               <span>Budget Snapshot</span>
             </h2>
             <Link

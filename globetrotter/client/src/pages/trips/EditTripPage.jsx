@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ArrowLeft,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Image as ImageIcon,
   Tag,
   MapPin,
@@ -331,7 +331,7 @@ export default function EditTripPage() {
               type="number"
               min="0"
               step="any"
-              leftIcon={<DollarSign className="w-4 h-4" />}
+              leftIcon={<IndianRupee className="w-4 h-4" />}
               error={errors.budget?.message}
               {...register('budget')}
             />

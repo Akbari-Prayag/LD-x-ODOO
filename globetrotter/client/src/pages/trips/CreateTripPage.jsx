@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import {
   ArrowLeft,
   Calendar,
-  DollarSign,
+  IndianRupee,
   Image as ImageIcon,
   Tag,
   Sparkles,
@@ -243,7 +243,7 @@ export default function CreateTripPage() {
               min="0"
               step="any"
               placeholder="0"
-              leftIcon={<DollarSign className="w-4 h-4" />}
+              leftIcon={<IndianRupee className="w-4 h-4" />}
               error={errors.budget?.message}
               hint="Estimated spending limit for activities, stays, transport, and food."
               {...register('budget')}
