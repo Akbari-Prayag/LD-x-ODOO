@@ -60,7 +60,7 @@ export default function AppRoutes() {
     <Suspense fallback={<LoadingPage />}>
       <Routes>
         {/* Public home */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LandingPage />} />
 
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
