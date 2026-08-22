@@ -1,38 +1,51 @@
 import { useEffect, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { motion } from 'framer-motion'
+import { fetchTrips, selectAllTrips, selectTripsLoading, selectTripsError } from '../../store/slices/tripsSlice.js'
 import { selectCurrentUser } from '../../store/slices/authSlice.js'
-import {
-  fetchTrips,
-  selectTrips,
-  selectTripsLoading,
-  selectTripsError,
-} from '../../store/slices/tripsSlice.js'
 import api from '../../services/api.js'
 
-import DashboardHeader from './DashboardHeader.jsx'
+import JourneyMapHeader from './JourneyMapHeader.jsx'
 import StatsSection from './StatsSection.jsx'
+import NextTripCountdown from './NextTripCountdown.jsx'
 import RecentTrips from './RecentTrips.jsx'
-import RecommendedDestinations from './RecommendedDestinations.jsx'
 import BudgetHighlight from './BudgetHighlight.jsx'
+import RecommendedDestinations from './RecommendedDestinations.jsx'
+import CommandPalette from '../../components/ui/CommandPalette.jsx'
 
 export default function DashboardPage() {
   const dispatch = useDispatch()
   const user = useSelector(selectCurrentUser)
-  const trips = useSelector(selectTrips)
+  const trips = useSelector(selectAllTrips) || []
   const tripsLoading = useSelector(selectTripsLoading)
   const tripsError = useSelector(selectTripsError)
 
-  const [cities, setCities] = useState([])
+  const [popularCities, setPopularCities] = useState([])
   const [citiesLoading, setCitiesLoading] = useState(true)
   const [citiesError, setCitiesError] = useState(null)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
+  // Listen for custom open command palette event
+  useEffect(() => {
+    const handleOpen = () => setIsCommandPaletteOpen(true)
+    window.addEventListener('open-command-palette', handleOpen)
+    return () => window.removeEventListener('open-command-palette', handleOpen)
+  }, [])
+
+  // Fetch user trips
+  useEffect(() => {
+    dispatch(fetchTrips())
+  }, [dispatch])
+
+  // Fetch popular cities
   const loadPopularCities = async () => {
     try {
       setCitiesLoading(true)
       setCitiesError(null)
       const { data } = await api.get('/cities/popular')
-      if (data.success) {
-        setCities(data.cities || [])
+      if (data.success && Array.isArray(data.cities)) {
+        setPopularCities(data.cities)
       }
     } catch (err) {
       setCitiesError(err.response?.data?.message || 'Failed to load popular cities')
@@ -42,40 +55,56 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    dispatch(fetchTrips())
     loadPopularCities()
-  }, [dispatch])
-
-  const handleRetryTrips = () => {
-    dispatch(fetchTrips())
-  }
+  }, [])
 
   return (
-    <div className="space-y-8 pb-12 animate-fade-in">
-      {/* Welcome Banner */}
-      <DashboardHeader user={user} />
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-8 pb-12 max-w-7xl mx-auto"
+    >
+      {/* 1. Animated World Journey Map Header */}
+      <JourneyMapHeader
+        user={user}
+        trips={trips}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+      />
 
-      {/* Metrics / Stats Cards */}
+      {/* 2. Key Stats Grid with Count-up & Sparklines */}
       <StatsSection trips={trips} loading={tripsLoading} />
 
-      {/* Main Grid: Recent Trips & Financial Highlight */}
-      <div className="space-y-8">
-        <RecentTrips
-          trips={trips}
-          loading={tripsLoading}
-          error={tripsError}
-          onRetry={handleRetryTrips}
-        />
+      {/* 3. Next Trip Live Countdown Hero Card */}
+      {trips.length > 0 && <NextTripCountdown trips={trips} />}
 
-        <BudgetHighlight trips={trips} loading={tripsLoading} />
+      {/* 4. Snap-Scroll Trips Carousel */}
+      <RecentTrips
+        trips={trips}
+        loading={tripsLoading}
+        error={tripsError}
+        onRetry={() => dispatch(fetchTrips())}
+      />
 
-        <RecommendedDestinations
-          cities={cities}
-          loading={citiesLoading}
-          error={citiesError}
-          onRetry={loadPopularCities}
-        />
-      </div>
-    </div>
+      {/* 5. Donut Chart Budget & Expense Breakdown */}
+      <BudgetHighlight
+        trips={trips}
+        onSelectCategory={(cat) => setSelectedCategory(cat)}
+      />
+
+      {/* 6. Swipeable Tinder-Style Recommended Destinations */}
+      <RecommendedDestinations
+        cities={popularCities}
+        loading={citiesLoading}
+        error={citiesError}
+        onRetry={loadPopularCities}
+      />
+
+      {/* Global Command Palette (⌘K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+      />
+    </motion.div>
   )
 }

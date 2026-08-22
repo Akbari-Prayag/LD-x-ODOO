@@ -1,73 +1,88 @@
-import { Clock, DollarSign, Tag, MapPin } from 'lucide-react'
+import { Clock, DollarSign, Tag, CheckCircle } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatUtils.js'
 import { cn } from '../../utils/cn.js'
 
 export default function ActivityItem({ tripActivity, currency = 'INR' }) {
   if (!tripActivity) return null
 
-  const activity = tripActivity.activity || {}
-  const name = tripActivity.customName || activity.name || 'Activity'
-  const description = tripActivity.customDescription || activity.description || ''
-  const cost = tripActivity.customCost || activity.estimatedCost || 0
-  const category = activity.category || 'sightseeing'
-  const time = tripActivity.startTime || '09:00'
-  const duration = activity.duration ? `${activity.duration.value} ${activity.duration.unit}` : null
+  const {
+    activity,
+    customName,
+    customDescription,
+    customCost,
+    startTime,
+    endTime,
+    status = 'planned',
+  } = tripActivity
 
-  const categoryBadgeMap = {
-    sightseeing: 'bg-ocean-100 text-ocean-800 border-ocean-200',
-    culture: 'bg-sage-100 text-sage-800 border-sage-200',
-    food: 'bg-accent-100 text-accent-800 border-accent-200',
-    adventure: 'bg-warning-100 text-warning-800 border-warning-200',
-    nature: 'bg-success-100 text-success-800 border-success-200',
-    shopping: 'bg-purple-100 text-purple-800 border-purple-200',
+  const name = activity?.name || customName || 'Scheduled Activity'
+  const description = activity?.description || customDescription
+  const cost = customCost !== undefined ? customCost : activity?.estimatedCost
+  const category = activity?.category || 'sightseeing'
+  const image = activity?.image
+
+  const categoryConfig = {
+    sightseeing: { label: 'Sightseeing', badge: 'bg-ocean-100 dark:bg-ocean-950 text-ocean-700 dark:text-ocean-300' },
+    food: { label: 'Food & Dining', badge: 'bg-sunset-100 dark:bg-sunset-950 text-sunset-700 dark:text-sunset-300' },
+    adventure: { label: 'Adventure', badge: 'bg-accent-100 dark:bg-accent-950 text-accent-700 dark:text-accent-300' },
+    culture: { label: 'Culture & Arts', badge: 'bg-sage-100 dark:bg-sage-950 text-sage-700 dark:text-sage-300' },
+    shopping: { label: 'Shopping', badge: 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300' },
+    nature: { label: 'Nature', badge: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' },
+    entertainment: { label: 'Entertainment', badge: 'bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300' },
   }
 
-  const badgeClass = categoryBadgeMap[category.toLowerCase()] || 'bg-surface-100 text-surface-700 border-surface-200'
+  const currentCat = categoryConfig[category] || {
+    label: category,
+    badge: 'bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300',
+  }
 
   return (
-    <div className="flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl bg-surface-50/70 hover:bg-white border border-surface-200/80 transition-all duration-150 shadow-sm">
-      {/* Time column */}
-      <div className="w-14 sm:w-16 flex flex-col items-center justify-center p-2 rounded-lg bg-white border border-surface-200 text-center flex-shrink-0">
-        <Clock className="w-3.5 h-3.5 text-ocean-600 mb-0.5" />
-        <span className="text-xs font-bold text-surface-800">{time}</span>
-      </div>
+    <div className="group flex flex-col sm:flex-row items-start gap-4 p-4 rounded-2xl bg-white dark:bg-surface-900 border border-surface-200/90 dark:border-surface-800 hover:border-ocean-300 dark:hover:border-ocean-700 shadow-sm hover:shadow-md transition-all duration-200">
+      {/* Activity Image Thumbnail */}
+      {image && (
+        <div className="relative w-full sm:w-28 sm:h-24 rounded-xl overflow-hidden bg-surface-100 flex-shrink-0">
+          <img
+            src={image}
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      )}
 
-      {/* Activity Details */}
-      <div className="flex-1 min-w-0 space-y-1">
+      {/* Activity Body */}
+      <div className="flex-1 min-w-0 space-y-1.5 w-full">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm sm:text-base font-display font-semibold text-surface-900 truncate">
+          <h5 className="font-display font-bold text-sm sm:text-base text-surface-900 dark:text-white truncate">
             {name}
-          </h4>
+          </h5>
 
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                'text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full border capitalize',
-                badgeClass
-              )}
-            >
-              {category}
+          {/* Time Chip */}
+          {startTime && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-surface-100 dark:bg-surface-800 text-surface-700 dark:text-surface-300 text-xs font-semibold font-mono">
+              <Clock className="w-3 h-3 text-ocean-600 dark:text-ocean-400" />
+              <span>{startTime} {endTime ? `– ${endTime}` : ''}</span>
             </span>
-
-            {cost > 0 && (
-              <span className="text-xs font-bold text-sage-700 bg-sage-50 px-2 py-0.5 rounded-md border border-sage-200">
-                {formatCurrency(cost, currency)}
-              </span>
-            )}
-          </div>
+          )}
         </div>
 
         {description && (
-          <p className="text-xs text-surface-500 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-surface-500 dark:text-surface-400 line-clamp-2">
             {description}
           </p>
         )}
 
-        {duration && (
-          <p className="text-[11px] text-surface-400 flex items-center gap-1 pt-0.5">
-            <span>Estimated duration: {duration}</span>
-          </p>
-        )}
+        {/* Footer Meta: Category + Cost */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <span className={cn('px-2.5 py-0.5 text-[10px] font-semibold rounded-full capitalize', currentCat.badge)}>
+            {currentCat.label}
+          </span>
+
+          {cost !== undefined && Number(cost) > 0 && (
+            <span className="text-xs font-bold text-surface-800 dark:text-surface-200">
+              {formatCurrency(cost, currency)}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )

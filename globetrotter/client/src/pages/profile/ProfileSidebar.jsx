@@ -1,50 +1,56 @@
-import { User, Lock, Settings, Heart, AlertTriangle } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { User, Lock, Settings, Bookmark, AlertTriangle } from 'lucide-react'
 import { cn } from '../../utils/cn.js'
 
 export const PROFILE_TABS = [
   { id: 'info', label: 'Personal Info', icon: User },
-  { id: 'security', label: 'Security', icon: Lock },
+  { id: 'security', label: 'Security & 2FA', icon: Lock },
   { id: 'preferences', label: 'Preferences', icon: Settings },
-  { id: 'saved', label: 'Saved Places', icon: Heart },
-  { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, danger: true },
+  { id: 'saved', label: 'Saved Places', icon: Bookmark },
+  { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, isDanger: true },
 ]
 
-export default function ProfileSidebar({ activeTab, onSelectTab }) {
+export default function ProfileSidebar({ activeTab, onTabChange }) {
   return (
-    <div className="card p-2 border border-surface-200/90 rounded-2xl bg-white flex flex-row md:flex-col overflow-x-auto scrollbar-hide gap-1 flex-shrink-0 md:w-64">
-      {PROFILE_TABS.map(({ id, label, icon: Icon, danger }) => {
-        const isActive = activeTab === id
+    <nav className="flex lg:flex-col gap-1.5 overflow-x-auto p-1.5 rounded-3xl bg-white dark:bg-surface-900 border border-surface-200/90 dark:border-surface-800 shadow-soft">
+      {PROFILE_TABS.map((tab) => {
+        const Icon = tab.icon
+        const isActive = activeTab === tab.id
+
         return (
           <button
-            key={id}
-            onClick={() => onSelectTab(id)}
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
             className={cn(
-              'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 whitespace-nowrap text-left w-full',
+              'relative flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-150 whitespace-nowrap text-left z-10',
               isActive
-                ? danger
-                  ? 'bg-danger-50 text-danger-700 font-semibold border border-danger-200'
-                  : 'bg-ocean-50 text-ocean-700 font-semibold border border-ocean-200/80 shadow-sm'
-                : danger
-                ? 'text-danger-600 hover:bg-danger-50/50'
-                : 'text-surface-600 hover:text-surface-900 hover:bg-surface-50'
+                ? tab.isDanger
+                  ? 'text-danger-600 dark:text-danger-400 font-bold'
+                  : 'text-ocean-700 dark:text-ocean-300 font-bold'
+                : tab.isDanger
+                ? 'text-danger-500/80 hover:bg-danger-50 dark:hover:bg-danger-950/30'
+                : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-white hover:bg-surface-100 dark:hover:bg-surface-800'
             )}
           >
-            <Icon
-              className={cn(
-                'w-4 h-4 flex-shrink-0',
-                isActive
-                  ? danger
-                    ? 'text-danger-600'
-                    : 'text-ocean-600'
-                  : danger
-                  ? 'text-danger-400'
-                  : 'text-surface-400'
-              )}
-            />
-            <span>{label}</span>
+            {/* Sliding Pill Background Indicator */}
+            {isActive && (
+              <motion.div
+                layoutId="active-profile-tab"
+                className={cn(
+                  'absolute inset-0 rounded-2xl -z-10 shadow-sm',
+                  tab.isDanger
+                    ? 'bg-danger-50 dark:bg-danger-950/50 border border-danger-200 dark:border-danger-800'
+                    : 'bg-ocean-50 dark:bg-ocean-950/50 border border-ocean-200 dark:border-ocean-800'
+                )}
+                transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+              />
+            )}
+
+            <Icon className="w-4 h-4 flex-shrink-0" />
+            <span>{tab.label}</span>
           </button>
         )
       })}
-    </div>
+    </nav>
   )
 }

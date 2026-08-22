@@ -144,6 +144,7 @@ const tripsSlice = createSlice({
 export const { setCurrentTrip, clearCurrentTrip, setFilter, clearError, reorderStops } = tripsSlice.actions
 
 export const selectTrips       = (s) => s.trips.list
+export const selectAllTrips    = (s) => s.trips.list
 export const selectCurrentTrip = (s) => s.trips.currentTrip
 export const selectTripsLoading = (s) => s.trips.isLoading
 export const selectTripsCreating = (s) => s.trips.isCreating

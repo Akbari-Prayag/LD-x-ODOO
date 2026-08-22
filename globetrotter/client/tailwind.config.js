@@ -61,6 +61,19 @@ export default {
           800: '#9a3412',
           900: '#7c2d12',
         },
+        // Sunset / Coral highlight (New)
+        sunset: {
+          50:  '#fff8f5',
+          100: '#ffede5',
+          200: '#ffd8c8',
+          300: '#ffbba3',
+          400: '#f5a97f',
+          500: '#ee8c5e',
+          600: '#dd6935',
+          700: '#b8491c',
+          800: '#923b1a',
+          900: '#76331a',
+        },
         // Success
         success: {
           50:  '#f0fdf4',
@@ -116,26 +129,28 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'Inter', 'sans-serif'],
+        sans:    ['Inter', 'system-ui', 'sans-serif'],
+        body:    ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Syne', 'Plus Jakarta Sans', 'Poppins', 'sans-serif'],
       },
       fontSize: {
         'xxs': ['0.625rem', { lineHeight: '0.875rem' }],
       },
       borderRadius: {
         'xl':  '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+        '2xl': '1.25rem',
+        '3xl': '1.75rem',
         '4xl': '2rem',
       },
       boxShadow: {
+        'soft':     '0 8px 30px rgba(20,40,60,0.08)',
+        'glow':     '0 0 40px rgba(59,114,222,0.25)',
+        'glowSage': '0 0 40px rgba(91,138,131,0.25)',
         'card':     '0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07)',
         'card-md':  '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07)',
         'card-lg':  '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08)',
         'card-xl':  '0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08)',
         'inner-sm': 'inset 0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'glow':     '0 0 20px rgb(99 102 241 / 0.3)',
-        'glow-lg':  '0 0 40px rgb(99 102 241 / 0.2)',
       },
       animation: {
         'fade-in':    'fadeIn 0.2s ease-out',
