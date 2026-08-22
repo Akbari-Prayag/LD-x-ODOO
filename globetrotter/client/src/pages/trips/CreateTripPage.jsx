@@ -427,7 +427,7 @@ export default function CreateTripPage() {
   const [selectedCityName, setSelectedCityName] = useState('Mumbai')
 
   const [travelersCount, setTravelersCount] = useState(2)
-  const [activeTripStyle, setActiveTripStyle] = useState('')
+  const [selectedTripStyles, setSelectedTripStyles] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [customTag, setCustomTag] = useState('')
   const [coverPhotoMode, setCoverPhotoMode] = useState('upload') // 'upload' | 'url'
@@ -603,12 +603,30 @@ export default function CreateTripPage() {
     toast.success(`Dates set: ${sStr} to ${eStr}`)
   }
 
-  // Handle Trip Style Selection
-  const handleSelectTripStyle = (style) => {
-    setActiveTripStyle(style.id)
-    setSelectedTags(style.tags)
-    if (totalBudget === 0) {
-      setValue('budget', style.defaultBudget)
+  // Handle Trip Style Selection (Multi-Select Supported)
+  const handleToggleTripStyle = (style) => {
+    const isSelected = selectedTripStyles.includes(style.id)
+    let nextStyles = []
+    if (isSelected) {
+      nextStyles = selectedTripStyles.filter((id) => id !== style.id)
+      setSelectedTripStyles(nextStyles)
+
+      // Retain tags from other active styles or custom added tags
+      const otherStylesTags = new Set(
+        TRIP_STYLES.filter((s) => nextStyles.includes(s.id)).flatMap((s) => s.tags)
+      )
+      setSelectedTags((prevTags) =>
+        prevTags.filter((tag) => otherStylesTags.has(tag) || !style.tags.includes(tag))
+      )
+    } else {
+      nextStyles = [...selectedTripStyles, style.id]
+      setSelectedTripStyles(nextStyles)
+
+      // Add new style tags
+      setSelectedTags((prevTags) => Array.from(new Set([...prevTags, ...style.tags])))
+      if (totalBudget === 0 && style.defaultBudget) {
+        setValue('budget', style.defaultBudget)
+      }
     }
   }
 
@@ -727,7 +745,7 @@ export default function CreateTripPage() {
                     className="input py-2 text-xs bg-white font-medium text-surface-900"
                   >
                     {countriesData.map((country) => (
-                      <option key={country.code} value={country.code}>
+                      <option key={`${country.code}-${country.name}`} value={country.code}>
                         {country.name} ({country.currency})
                       </option>
                     ))}
@@ -978,7 +996,7 @@ export default function CreateTripPage() {
               )}
             </div>
 
-            {/* 4. Travel Style (Clean Lucide Icons, No Emojis) */}
+            {/* 4. Travel Style (Multi-Select with Clean Lucide Icons) */}
             <div className="card p-6 md:p-7 space-y-5 border border-surface-200 shadow-card">
               <div className="border-b border-surface-100 pb-3 flex items-center justify-between">
                 <div>
@@ -987,29 +1005,43 @@ export default function CreateTripPage() {
                     <span>Travel Style & Preferences</span>
                   </h2>
                   <p className="text-xs text-surface-500 mt-0.5">
-                    Select a travel style to auto-tune suggested activities and tags.
+                    Select multiple travel styles to auto-tune suggested activities and tags.
                   </p>
                 </div>
-                <span className="text-xs text-surface-400 font-medium">Step 4 of 4</span>
+                <div className="flex items-center gap-2">
+                  {selectedTripStyles.length > 0 && (
+                    <span className="badge badge-primary text-[10px] font-bold">
+                      {selectedTripStyles.length} Selected
+                    </span>
+                  )}
+                  <span className="text-xs text-surface-400 font-medium">Step 4 of 4</span>
+                </div>
               </div>
 
-              {/* Travel Style Buttons with Lucide Icons */}
+              {/* Multi-Select Travel Style Buttons with Lucide Icons */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {TRIP_STYLES.map((style) => {
-                  const isSelected = activeTripStyle === style.id
+                  const isSelected = selectedTripStyles.includes(style.id)
                   const IconComponent = style.icon
                   return (
                     <button
                       key={style.id}
                       type="button"
-                      onClick={() => handleSelectTripStyle(style)}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col items-start gap-1.5 ${
+                      onClick={() => handleToggleTripStyle(style)}
+                      className={`relative p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col items-start gap-1.5 ${
                         isSelected
-                          ? 'border-primary-600 bg-primary-50/70 ring-2 ring-primary-500/20 font-bold text-primary-900 shadow-xs'
+                          ? 'border-primary-600 bg-primary-50/80 ring-2 ring-primary-500/20 font-bold text-primary-900 shadow-xs'
                           : 'border-surface-200 bg-white hover:bg-surface-50 text-surface-800'
                       }`}
                     >
-                      <IconComponent className={`w-5 h-5 ${isSelected ? 'text-primary-600' : 'text-surface-500'}`} />
+                      <div className="flex items-center justify-between w-full">
+                        <IconComponent className={`w-5 h-5 ${isSelected ? 'text-primary-600' : 'text-surface-500'}`} />
+                        {isSelected && (
+                          <span className="w-4 h-4 rounded-full bg-primary-600 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                            ✓
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs font-semibold block leading-tight">{style.name}</span>
                     </button>
                   )

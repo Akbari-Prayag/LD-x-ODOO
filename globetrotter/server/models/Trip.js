@@ -22,7 +22,7 @@ const Trip = sequelize.define('Trip', {
     defaultValue: '',
   },
   coverPhoto: {
-    type:         DataTypes.STRING(500),
+    type:         DataTypes.TEXT('long'),
     defaultValue: '',
   },
   startDate: {

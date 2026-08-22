@@ -53,19 +53,24 @@ export default function Sidebar() {
           mobileOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
         )}
       >
-        {/* ── Header / Logo ── */}
+        {/* ── Header / Logo + Collapse Toggle ── */}
         <div className="flex items-center justify-between px-4 h-16 border-b border-white/10 flex-shrink-0">
-          {!collapsed ? (
-            <Link to="/dashboard" className="flex items-center gap-2 overflow-hidden group">
-              <Logo variant="white" size="sm" />
-            </Link>
-          ) : (
-            <Link to="/dashboard" className="mx-auto group">
-              <Logo variant="white" size="sm" className="[&>span]:hidden" />
-            </Link>
-          )}
 
-          {/* Mobile close */}
+          {/* Desktop: clicking the logo toggles collapse */}
+          <button
+            onClick={() => dispatch(toggleSidebarCollapse())}
+            className="hidden md:flex items-center gap-2 overflow-hidden group flex-1 min-w-0 text-left"
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <Logo variant="white" size="sm" className={collapsed ? '[&>span]:hidden' : ''} />
+          </button>
+
+          {/* Mobile: logo navigates to dashboard */}
+          <Link to="/dashboard" className="md:hidden flex items-center gap-2 overflow-hidden group flex-1 min-w-0">
+            <Logo variant="white" size="sm" />
+          </Link>
+
+          {/* Mobile: close X */}
           <button
             onClick={() => dispatch(toggleMobileMenu())}
             className="md:hidden p-1 rounded-lg hover:bg-white/10 text-surface-400 hover:text-white transition-colors"
@@ -151,18 +156,6 @@ export default function Sidebar() {
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {!collapsed && <span>Logout</span>}
-          </button>
-
-          {/* Collapse toggle (desktop only) */}
-          <button
-            onClick={() => dispatch(toggleSidebarCollapse())}
-            className="hidden md:flex w-full items-center gap-3 px-3 py-2 rounded-xl text-xs text-surface-500 hover:text-white hover:bg-white/8 transition-all duration-150"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed
-              ? <ChevronRight className="w-4 h-4 mx-auto" />
-              : <><ChevronLeft className="w-4 h-4" /><span>Collapse</span></>
-            }
           </button>
         </div>
       </aside>

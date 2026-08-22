@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useDispatch, useSelector } from 'react-redux'
 import { loginSchema } from '../../utils/validationSchemas.js'
 import { clearError, loginUser, selectAuthError, selectAuthLoading } from '../../store/slices/authSlice.js'
-import { cn } from '../../utils/cn.js'
 
 export default function LoginPage() {
   const dispatch = useDispatch()
@@ -54,7 +53,7 @@ export default function LoginPage() {
           Account Access
         </span>
         <h2 className="text-2xl sm:text-3xl font-display font-black text-[#0f172a] dark:text-white tracking-tight">
-          Welcome back to Triply
+          Welcome back to GlobeTrotter
         </h2>
         <p className="text-xs sm:text-sm text-surface-500 font-light">
           Enter your credentials to access your routes, itineraries, and travel journals.
@@ -90,18 +89,17 @@ export default function LoginPage() {
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400 pointer-events-none" />
+            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
             <input
               type="email"
               autoComplete="email"
-              placeholder="name@example.com"
+              placeholder="you@example.com"
               onFocus={clearAuthError}
-              className={cn(
-                'w-full pl-10 pr-3.5 py-3 rounded-2xl border bg-surface-50 dark:bg-surface-800/80 text-surface-900 dark:text-white text-sm placeholder:text-surface-400 outline-none transition-all',
+              className={`w-full rounded-2xl border bg-surface-50 dark:bg-[#1e2638] py-3.5 pl-10 pr-4 text-sm text-surface-900 dark:text-white outline-none transition-all placeholder:text-surface-400 focus:border-[#e05a38] focus:bg-white dark:focus:bg-[#151b28] focus:ring-4 focus:ring-[#e05a38]/10 ${
                 errors.email
-                  ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                  : 'border-surface-200 dark:border-surface-700 focus:border-[#e05a38] focus:bg-white dark:focus:bg-surface-900 focus:ring-4 focus:ring-[#e05a38]/10'
-              )}
+                  ? 'border-red-500 bg-red-50/40 dark:border-red-500'
+                  : 'border-surface-200 dark:border-surface-700'
+              }`}
               {...register('email')}
             />
           </div>
@@ -121,24 +119,23 @@ export default function LoginPage() {
             </label>
             <Link
               to="/forgot-password"
-              className="text-xs font-semibold text-[#e05a38] hover:underline"
+              className="text-xs font-medium text-surface-500 hover:text-[#e05a38] dark:hover:text-[#f06e4b] transition-colors"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400 pointer-events-none" />
+            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
             <input
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               placeholder="Enter your account password"
               onFocus={clearAuthError}
-              className={cn(
-                'w-full pl-10 pr-10 py-3 rounded-2xl border bg-surface-50 dark:bg-surface-800/80 text-surface-900 dark:text-white text-sm placeholder:text-surface-400 outline-none transition-all',
+              className={`w-full rounded-2xl border bg-surface-50 dark:bg-[#1e2638] py-3.5 pl-10 pr-11 text-sm text-surface-900 dark:text-white outline-none transition-all placeholder:text-surface-400 focus:border-[#e05a38] focus:bg-white dark:focus:bg-[#151b28] focus:ring-4 focus:ring-[#e05a38]/10 ${
                 errors.password
-                  ? 'border-red-400 focus:ring-2 focus:ring-red-400/20'
-                  : 'border-surface-200 dark:border-surface-700 focus:border-[#e05a38] focus:bg-white dark:focus:bg-surface-900 focus:ring-4 focus:ring-[#e05a38]/10'
-              )}
+                  ? 'border-red-500 bg-red-50/40 dark:border-red-500'
+                  : 'border-surface-200 dark:border-surface-700'
+              }`}
               {...register('password')}
             />
             <button
@@ -183,7 +180,7 @@ export default function LoginPage() {
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <>
-              <span>Sign In to Triply</span>
+              <span>Sign In to GlobeTrotter</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -225,7 +222,7 @@ export default function LoginPage() {
 
       {/* Footer Switch to Register */}
       <p className="text-center text-xs text-surface-500 pt-1">
-        Don't have a Triply account?{' '}
+        Don't have a GlobeTrotter account?{' '}
         <Link
           to="/register"
           className="font-bold text-[#e05a38] hover:underline underline-offset-2 transition-colors"
